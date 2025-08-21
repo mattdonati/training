@@ -4,6 +4,10 @@ apiVersion: jobset.x-k8s.io/v1alpha2
 kind: JobSet
 metadata:
   name: pytorch
+  labels:
+       kueue.x-k8s.io/queue-name: dws-local-queue
+  annotations:
+       provreq.kueue.x-k8s.io/maxRunDurationHourss: "4"
 spec:
   replicatedJobs:
   - name: workers
@@ -11,7 +15,7 @@ spec:
       spec:
         parallelism: 2
         completions: 2
-        #suspend: tru
+        suspend: true #dws
         backoffLimit: 0
         template:
           metadata:
@@ -37,7 +41,8 @@ spec:
             
             #dnsPolicy: ClusterFirstWithHostNet
             nodeSelector:
-               cloud.google.com/gke-nodepool: a3-ultragpu-8g-a3-ultragpu-spot #dws
+               cloud.google.com/gke-nodepool:  a3-ultragpu-8g-a3-ultragpu-pool #dws
+               #cloud.google.com/gke-accelerator: nvidia-ha3-ultragpu-8g-a3-ultragpu-spot #spot
                #cloud.google.com/gke-accelerator: nvidia-h200-141gb #non dws
             tolerations:
                - key: "nvidia.com/gpu"
@@ -96,7 +101,7 @@ spec:
               - name: MASTER_PORT
                 value: "3389"
               - name: NODE_COUNT
-                value: "1"
+                value: "2"
               - name: NODE_RANK
                 valueFrom:
                   fieldRef:
@@ -113,45 +118,9 @@ spec:
               - -xc
               - |
                 source /usr/local/gib/scripts/set_nccl_env.sh
-                #sleep infinity
-                accelerate launch \
-                --use_deepspeed "true" \
-                --downcast_bf16 "no" \
-                --machine_rank $NODE_RANK \
-                --num_machines $NODE_COUNT \
-                --num_processes $NODE_COUNT*8 \
-                --main_process_ip: $MASTER_ADDR \
-                --main_process_port $MASTER_PORT \
-                --deepspeed_config_file "configs/deepspeed.yaml" \
-                --rdzv_backend "static" \
-                --deepspeed_config "configs/deepspeed.yaml" \
-                --same_network "true" \
-                --use_cpu "false" \
-                scripts/train.py \
-                --dataset_path "/gcs-dir/data/gov_report" \
-                --model_path "/gcs-dir/data/model" \
-                --max_seq_len 8192 \
-                --bf16 True \
-                --logging_steps 24 \
-                --eval_steps 48 \
-                --output_dir "./results/llama-70b_scrolls_gov_report_r16_$1" \
-                --per_device_train_batch_size 2 \
-                --gradient_accumulation_steps 4 \
-                --lr_scheduler_type "cosine" \
-                --learning_rate 4e-4 \
-                --weight_decay 0.0001 \
-                --warmup_ratio 0 \
-                --max_grad_norm 0.3 \
-                --use_gradient_checkpointing True \
-                --target_eval_loss 0.925 \
-                --use_peft_lora True \
-                --lora_r 16 \
-                --lora_alpha 32 \
-                --lora_dropout 0.1 \
-                --max_steps 1024 \
-                --use_flash_attn \
-                --seed 1234 \
-                --lora_target_modules "qkv_proj,o_proj"
+                sleep infinity
+                chmod +x scripts/train.py
+                accelerate launch --gpu_ids=0,1,2,3,4,5,6,7  --machine_rank=$NODE_RANK   --num_machines=$NODE_COUNT   --num_processes=16 --main_process_ip="$MASTER_ADDR"   --main_process_port="$MASTER_PORT" --deepspeed_config_file configs/deepspeed.yaml --rdzv_backend static  --debug   scripts/train.py --dataset_path /gcs-dir/data/gov_report --model_path /gcs-dir/data/model/weights --max_seq_len 8192 --bf16 True --logging_steps 24 --eval_steps 48 --output_dir ./results/llama-70b_scrolls_gov_report_r16_ --per_device_train_batch_size 2 --gradient_accumulation_steps 4 --lr_scheduler_type cosine --learning_rate 4e-4 --weight_decay 0.0001 --warmup_ratio 0 --max_grad_norm 0.3 --use_gradient_checkpointing True --target_eval_loss 0.925 --use_peft_lora True --lora_r 16 --lora_alpha 32 --lora_dropout 0.1 --max_steps 1024 --use_flash_attn --seed 1234 --lora_target_modules qkv_proj,o_proj 
               resources:
                 requests:
                   nvidia.com/gpu: 8
