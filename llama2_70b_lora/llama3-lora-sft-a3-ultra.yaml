@@ -1,0 +1,178 @@
+# Distributed training of a traditional CNN model to do image classification 
+# using the MNIST dataset and PyTorch.
+apiVersion: jobset.x-k8s.io/v1alpha2
+kind: JobSet
+metadata:
+  name: pytorch
+spec:
+  replicatedJobs:
+  - name: workers
+    template:
+      spec:
+        parallelism: 2
+        completions: 2
+        #suspend: tru
+        backoffLimit: 0
+        template:
+          metadata:
+            annotations:
+              gke-gcsfuse/volumes: "true"
+              networking.gke.io/default-interface: 'eth0'
+              networking.gke.io/interfaces: |
+               [
+                {"interfaceName":"eth0","network":"default"},
+                {"interfaceName":"eth1","network":"gvnic-1"},
+                {"interfaceName":"eth2","network":"rdma-0"},
+                {"interfaceName":"eth3","network":"rdma-1"},
+                {"interfaceName":"eth4","network":"rdma-2"},
+                {"interfaceName":"eth5","network":"rdma-3"},
+                {"interfaceName":"eth6","network":"rdma-4"},
+                {"interfaceName":"eth7","network":"rdma-5"},
+                {"interfaceName":"eth8","network":"rdma-6"},
+                {"interfaceName":"eth9","network":"rdma-7"}
+               ]
+          spec:
+            #restartPolicy: Never # dws
+            #hostNetwork: true
+            
+            #dnsPolicy: ClusterFirstWithHostNet
+            nodeSelector:
+               cloud.google.com/gke-nodepool: a3-ultragpu-8g-a3-ultragpu-spot #dws
+               #cloud.google.com/gke-accelerator: nvidia-h200-141gb #non dws
+            tolerations:
+               - key: "nvidia.com/gpu"
+                 operator: "Exists"
+                 effect: "NoSchedule"
+            restartPolicy: Never
+            serviceAccountName: storage-access
+            volumes:
+            - name: library-dir-host
+              hostPath:
+                path: /home/kubernetes/bin/nvidia
+            - name: gib
+              hostPath:
+                path: /home/kubernetes/bin/gib
+            - name: data
+              emptyDir: {}
+            - name: hf-cache
+              emptyDir: {}
+            - name: model-cache
+              emptyDir: {}
+            - name: output
+              emptyDir: {}
+            - name: dshm
+              emptyDir:
+                medium: Memory
+            - name: gcs-fuse-csi-ephemeral
+              csi:
+                driver: gcsfuse.csi.storage.gke.io
+                readOnly: false
+                volumeAttributes:
+                   bucketName: rick-mlperf
+                   mountOptions: "implicit-dirs"
+                   gcsfuseLoggingSeverity: warning
+                   fileCacheCapacity: "200Gi"
+
+            containers:
+            - name: pytorch
+              image: us-east1-docker.pkg.dev/gpu-launchpad-playground/gke-llm/mlperf:latest
+              imagePullPolicy: Always
+              # image: gcr.io/k8s-staging-jobset/pytorch-mnist:latest
+              ports:
+              - containerPort: 3389
+              env:
+              - name: HF_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    name: huggingface
+                    key: HF_TOKEN
+              - name: HUGGING_FACE_HUB_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                     name: huggingface
+                     key: HF_TOKEN
+              - name: MASTER_ADDR
+                value: "pytorch-workers-0-0.pytorch"
+              - name: MASTER_PORT
+                value: "3389"
+              - name: NODE_COUNT
+                value: "1"
+              - name: NODE_RANK
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
+              # Force python to not buffer output and write directly to stdout, so we can view training logs via `kubectl logs`.
+              - name: PYTHONUNBUFFERED
+                value: "0"
+              - name: LD_LIBRARY_PATH
+                value: /usr/local/nvidia/lib64
+              securityContext:
+                privileged: true
+              command:
+              - bash
+              - -xc
+              - |
+                source /usr/local/gib/scripts/set_nccl_env.sh
+                #sleep infinity
+                accelerate launch \
+                --use_deepspeed "true" \
+                --downcast_bf16 "no" \
+                --machine_rank $NODE_RANK \
+                --num_machines $NODE_COUNT \
+                --num_processes $NODE_COUNT*8 \
+                --main_process_ip: $MASTER_ADDR \
+                --main_process_port $MASTER_PORT \
+                --deepspeed_config_file "configs/deepspeed.yaml" \
+                --rdzv_backend "static" \
+                --deepspeed_config "configs/deepspeed.yaml" \
+                --same_network "true" \
+                --use_cpu "false" \
+                scripts/train.py \
+                --dataset_path "/gcs-dir/data/gov_report" \
+                --model_path "/gcs-dir/data/model" \
+                --max_seq_len 8192 \
+                --bf16 True \
+                --logging_steps 24 \
+                --eval_steps 48 \
+                --output_dir "./results/llama-70b_scrolls_gov_report_r16_$1" \
+                --per_device_train_batch_size 2 \
+                --gradient_accumulation_steps 4 \
+                --lr_scheduler_type "cosine" \
+                --learning_rate 4e-4 \
+                --weight_decay 0.0001 \
+                --warmup_ratio 0 \
+                --max_grad_norm 0.3 \
+                --use_gradient_checkpointing True \
+                --target_eval_loss 0.925 \
+                --use_peft_lora True \
+                --lora_r 16 \
+                --lora_alpha 32 \
+                --lora_dropout 0.1 \
+                --max_steps 1024 \
+                --use_flash_attn \
+                --seed 1234 \
+                --lora_target_modules "qkv_proj,o_proj"
+              resources:
+                requests:
+                  nvidia.com/gpu: 8
+                limits:
+                  nvidia.com/gpu: 8
+              volumeMounts:
+               - name: library-dir-host
+                 mountPath: /usr/local/nvidia
+               - name: gib
+                 mountPath: /usr/local/gib
+               - name: dshm
+                 mountPath: /dev/shm
+               - name: data
+                 mountPath: /data
+               - name: hf-cache
+                 mountPath: /root/.cache/huggingface
+               - name: model-cache
+                 mountPath: /root/.cache/modelscope
+               - name: output
+                 mountPath: /app/output
+               - mountPath: /gcs-dir
+                 name: gcs-fuse-csi-ephemeral
+               
+           
