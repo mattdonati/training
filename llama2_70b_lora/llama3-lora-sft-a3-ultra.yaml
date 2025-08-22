@@ -134,8 +134,8 @@ spec:
                 done
                 cp configs/deepspeed.json ds_config.json
                 sleep infinity
-                deepspeed --hostfile=hostfile --no_ssh --node_rank=$NODE_RANK --master_addr=$MASTER_ADDR --master_port=$MASTER_PORT \
-                #accelerate launch --config_file configs/default_config.yaml  --gpu_ids all --machine_rank=$NODE_RANK   --num_machines=$NODE_COUNT   --num_processes=8 --main_process_ip="$MASTER_ADDR"   --main_process_port="$MASTER_PORT"  --rdzv_backend static  --debug  \
+                #deepspeed --hostfile=hostfile --no_ssh --node_rank=$NODE_RANK --master_addr=$MASTER_ADDR --master_port=$MASTER_PORT \
+                accelerate launch --config_file configs/default_config.yaml  --gpu_ids all --machine_rank=$NODE_RANK   --num_machines=$NODE_COUNT   --num_processes=8 --main_process_ip="$MASTER_ADDR"   --main_process_port="$MASTER_PORT"  --rdzv_backend static  --debug  \
                 scripts/train.py --dataset_path /gcs-dir/hf-data --model_path /gcs-dir/meta-llama--Llama-2-70B-hf --max_seq_len 8192 --bf16 True --logging_steps 24 --eval_steps 48 --output_dir ./results/llama-70b_scrolls_gov_report_r16_ --per_device_train_batch_size 1 --gradient_accumulation_steps 1 --lr_scheduler_type cosine --learning_rate 4e-4 --weight_decay 0.0001 --warmup_ratio 0 --max_grad_norm 0.3 --use_gradient_checkpointing True --target_eval_loss 0.925 --use_peft_lora True --lora_r 16 --lora_alpha 32 --lora_dropout 0.1 --max_steps 1024 --use_flash_attn --seed 1234 --lora_target_modules qkv_proj,o_proj 
               resources:
                 requests:
