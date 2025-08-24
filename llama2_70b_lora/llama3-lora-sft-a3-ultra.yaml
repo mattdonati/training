@@ -7,7 +7,7 @@ metadata:
   #labels:
   #     kueue.x-k8s.io/queue-name: dws-local-queue
   #annotations:
-  #     provreq.kueue.x-k8s.io/maxRunDurationHourss: "4"
+  #     provreq.kueue.x-k8s.io/maxRunDurationHours: "4"
 spec:
   replicatedJobs:
   - name: workers
@@ -75,16 +75,22 @@ spec:
                 volumeAttributes:
                    bucketName: rick-mlperf
                    mountOptions: "implicit-dirs"
-                   gcsfuseLoggingSeverity: warning
-                   fileCacheCapacity: "200Gi"
-
+                   fileCacheCapacity: "-1Mi"
+                   fileCacheForRangeRead: "true"
+                   metadataCacheTTLSeconds: "-1"
+                   metadataNegativeCacheTTLSeconds: "0"
+                   metadataStatCacheCapacity: "-1Mi"
+                   metadataTypeCacheCapacity: "-1Mi"
+            - name: local-ssd
+              hostPath:
+                path: /mnt/stateful_partition/kube-ephemeral-ssd
             containers:
             - name: pytorch
               image: us-east1-docker.pkg.dev/gpu-launchpad-playground/gke-llm/mlperf:latest
               imagePullPolicy: Always
               # image: gcr.io/k8s-staging-jobset/pytorch-mnist:latest
-              ports:
-              - containerPort: 3389
+              #ports:
+              #- containerPort: 3389
               env:
               - name: HF_TOKEN
                 valueFrom:
@@ -118,6 +124,7 @@ spec:
               - -xc
               - |
                 source /usr/local/gib/scripts/set_nccl_env.sh
+                export NCCL_DEBUG=INFO
                 chmod +x scripts/train.py
                 NUM_GPU_PER_NODE=8
                 TOTAL_PROCESSES=$(($NODE_COUNT * $NUM_GPU_PER_NODE))
@@ -133,10 +140,13 @@ spec:
                   echo "$node_addr slots=$NUM_GPU_PER_NODE" >> "$HOSTFILE"
                 done
                 cp configs/deepspeed.json ds_config.json
+                #cp -r /gcs-dir/hf-data /localssd/hf-data
+                #cp -r /gcs-dir/meta-llama--Llama-2-70B-hf /localssd/meta-llama--Llama-2-70B-hf
+
                 sleep infinity
-                #deepspeed --hostfile=hostfile --no_ssh --node_rank=$NODE_RANK --master_addr=$MASTER_ADDR --master_port=$MASTER_PORT \
-                accelerate launch --config_file configs/default_config.yaml  --gpu_ids all --machine_rank=$NODE_RANK   --num_machines=$NODE_COUNT   --num_processes=8 --main_process_ip="$MASTER_ADDR"   --main_process_port="$MASTER_PORT"  --rdzv_backend static  --debug  \
-                scripts/train.py --dataset_path /gcs-dir/hf-data --model_path /gcs-dir/meta-llama--Llama-2-70B-hf --max_seq_len 8192 --bf16 True --logging_steps 24 --eval_steps 48 --output_dir ./results/llama-70b_scrolls_gov_report_r16_ --per_device_train_batch_size 1 --gradient_accumulation_steps 1 --lr_scheduler_type cosine --learning_rate 4e-4 --weight_decay 0.0001 --warmup_ratio 0 --max_grad_norm 0.3 --use_gradient_checkpointing True --target_eval_loss 0.925 --use_peft_lora True --lora_r 16 --lora_alpha 32 --lora_dropout 0.1 --max_steps 1024 --use_flash_attn --seed 1234 --lora_target_modules qkv_proj,o_proj 
+                #deepspeed --hostfile=hostfile --no_ssh --master_addr=$MASTER_ADDR --master_port=$MASTER_PORT \
+                TORCH_DISTRIBUTED_DEBUG=DETAIL OMP_NUM_THREADS=2 accelerate launch --config_file configs/default_config.yaml  --gpu_ids all --num_machines=$NODE_COUNT   --num_processes=8 --rdzv_backend static  --debug  \
+                scripts/train.py --dataset_path /gcs-dir/hf-data --model_path /gcs-dir/dp-mlperf/model --max_seq_len 4096 --bf16 True --logging_steps 24 --eval_steps 48 --output_dir ./results/llama-70b_scrolls_gov_report_r16_ --per_device_train_batch_size 2 --gradient_accumulation_steps 4 --lr_scheduler_type cosine --learning_rate 4e-4 --weight_decay 0.0001 --warmup_ratio 0 --max_grad_norm 0.3 --use_gradient_checkpointing True --target_eval_loss 0.925 --use_peft_lora True --lora_r 8 --lora_alpha 32 --lora_dropout 0.1 --max_steps 1024 --use_flash_attn --seed 1234 --lora_target_modules qkv_proj,o_proj 
               resources:
                 requests:
                   nvidia.com/gpu: 8
@@ -159,5 +169,7 @@ spec:
                  mountPath: /app/output
                - mountPath: /gcs-dir
                  name: gcs-fuse-csi-ephemeral
+               - name: local-ssd
+                 mountPath: /localssd
                
            

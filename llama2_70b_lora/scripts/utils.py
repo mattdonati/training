@@ -160,8 +160,6 @@ def create_and_prepare_model(args):
         model.print_trainable_parameters()
 
     return model
-
-
 def peft_module_casting_to_bf16(model, args):
     for name, module in model.named_modules():
         if isinstance(module, LoraLayer):

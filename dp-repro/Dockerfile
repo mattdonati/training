@@ -36,5 +36,6 @@ COPY app/pyproject.toml app/poetry.lock /app/
 #RUN --mount=type=cache,target=/root/.cache/pypoetry \
 #    --mount=type=secret,id=gcp-key \
 #    GOOGLE_APPLICATION_CREDENTIALS="/run/secrets/gcp-key" \
-RUN   poetry install --no-root --only main
+RUN poetry lock
+RUN  poetry install --no-root --only main
 COPY app/* /app/

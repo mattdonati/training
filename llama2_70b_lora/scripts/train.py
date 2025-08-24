@@ -133,7 +133,6 @@ class ScriptArguments:
     hub_model_id: Optional[str] = field(default=None)
     seed: Optional[int] = field(default=42)
 
-
 def main(args):
     loralogger = LoraLogger(target_eval_loss=args.target_eval_loss)
     gbs=args.per_device_train_batch_size * args.gradient_accumulation_steps * int(os.getenv("WORLD_SIZE", 1))
@@ -151,7 +150,7 @@ def main(args):
         warmup_ratio=args.warmup_ratio,
         lr_scheduler_type=args.lr_scheduler_type,
         num_train_epochs=args.num_train_epochs,
-        evaluation_strategy="steps",
+        eval_strategy="steps",#evaluation_strategy="steps",
         save_strategy="no",
         max_steps=args.max_steps,
         eval_steps=args.eval_steps,
