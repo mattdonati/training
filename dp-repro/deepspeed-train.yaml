@@ -16,8 +16,8 @@ spec:
   - name: workers
     template:
       spec:
-        parallelism: 2
-        completions: 2
+        parallelism: 1
+        completions: 1
         backoffLimit: 0
         #suspend: true #dws
         template:
@@ -122,7 +122,7 @@ spec:
               - name: MASTER_PORT
                 value: "3389"
               - name: NODE_COUNT
-                value: "2"
+                value: "1"
               - name: NODE_RANK
                 valueFrom:
                   fieldRef:
@@ -144,7 +144,7 @@ spec:
                 chmod +x /app/training.sh
                 NUM_GPU_PER_NODE=8
                 echo "Starting training, saving checkpoints to /mnt/local-checkpoints"
-                bash /app/training.sh "\${MASTER_ADDR}" "\${MASTER_PORT}" "\${NODE_RANK}" "\${NODE_COUNT}" "$NUM_GPU_PER_NODE" "4" "1024" "16"
+                bash /app/training.sh "\${MASTER_ADDR}" "\${MASTER_PORT}" "\${NODE_RANK}" "\${NODE_COUNT}" "$NUM_GPU_PER_NODE" "8" "1024" "16"
                 echo "Training finished. Copying checkpoints to persistent storage."
                 # Only the rank 0 node should perform the copy to avoid race conditions.
                 if [ "\${NODE_RANK}" -eq 0 ]; then

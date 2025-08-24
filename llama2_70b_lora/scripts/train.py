@@ -132,6 +132,10 @@ class ScriptArguments:
     dataset_config_name: Optional[str] = field(default="gov_report")
     hub_model_id: Optional[str] = field(default=None)
     seed: Optional[int] = field(default=42)
+    deepspeed: Optional[str] = field(
+        default=None,
+        metadata={"help": "Path to DeepSpeed config file."},
+    )
 
 def main(args):
     loralogger = LoraLogger(target_eval_loss=args.target_eval_loss)
@@ -162,6 +166,7 @@ def main(args):
         hub_model_id=args.hub_model_id,
         report_to="tensorboard",
         seed=args.seed,
+        deepspeed=args.deepspeed,
     )
 
     model = create_and_prepare_model(args)
