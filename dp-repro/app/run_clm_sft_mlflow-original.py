@@ -334,23 +334,19 @@ class DataTrainingArguments:
         default=True, metadata={"help": "Whether to keep line breaks when using TXT files or not."}
     )
 
-    preprocessed_dataset: bool = field(
-        default=True, metadata={"help": "Whether to dataset preprocessed"}
-    )
-
     def __post_init__(self):
         if self.streaming:
             require_version("datasets>=2.0.0", "The streaming feature requires `datasets>=2.0.0`")
 
         if self.dataset_name is None and self.train_file is None and self.validation_file is None:
             raise ValueError("Need either a dataset name or a training/validation file.")
-        #else:
-        #    if self.train_file is not None:
-        #        extension = self.train_file.split(".")[-1]
-        #        assert extension in ["csv", "json", "txt"], "`train_file` should be a csv, a json or a txt file."
-        #    if self.validation_file is not None:
-        #        extension = self.validation_file.split(".")[-1]
-        #        assert extension in ["csv", "json", "txt"], "`validation_file` should be a csv, a json or a txt file."
+        else:
+            if self.train_file is not None:
+                extension = self.train_file.split(".")[-1]
+                assert extension in ["csv", "json", "txt"], "`train_file` should be a csv, a json or a txt file."
+            if self.validation_file is not None:
+                extension = self.validation_file.split(".")[-1]
+                assert extension in ["csv", "json", "txt"], "`validation_file` should be a csv, a json or a txt file."
 
         if self.val_max_target_length is None:
             self.val_max_target_length = self.max_target_length
@@ -454,15 +450,6 @@ def main():
                 use_auth_token=True if model_args.use_auth_token else None,
                 streaming=data_args.streaming,
             )
-    elif data_args.preprocessed_dataset :
-        dataset = load_dataset(
-          "parquet",
-          data_files={
-            "train":  data_args.train_file,
-            "validation": data_args.validation_file,
-          },
-        )
-        train_dataset, eval_dataset = dataset["train"], dataset["validation"]
     else:
         data_files = {}
         dataset_args = {}
@@ -631,20 +618,19 @@ def main():
     #     column_names = list(raw_datasets["train"].features)
     # else:
     #     column_names = list(raw_datasets["validation"].features)
-    if not data_args.preprocessed_dataset:
-      if training_args.do_train:
+    if training_args.do_train:
         column_names = raw_datasets["train"].column_names
-      elif training_args.do_eval:
+    elif training_args.do_eval:
         column_names = raw_datasets["validation"].column_names
-      elif training_args.do_predict:
+    elif training_args.do_predict:
         column_names = raw_datasets["test"].column_names
-      else:
+    else:
         logger.info("There is nothing to do. Please pass `do_train`, `do_eval` and/or `do_predict`.")
         return
-      text_column = data_args.text_column
-      summary_column = data_args.summary_column
+
     # Get the column names for input/target.
-    
+    text_column = data_args.text_column
+    summary_column = data_args.summary_column
 
     # since this will be pickled to avoid _LazyModule error in Hasher force logger loading before tokenize_function
     # tok_logger = transformers.utils.logging.get_logger("transformers.tokenization_utils_base")
@@ -711,7 +697,7 @@ def main():
         # TODO: can't use seq2seq style for GPT2, unless we can change input_ids when model.generate(**input_ids) vs. model(**input_ids)
         return preprocess_function_train(examples)
 
-    if training_args.do_train and not data_args.preprocessed_dataset:
+    if training_args.do_train:
         if "train" not in raw_datasets:
             raise ValueError("--do_train requires a train dataset")
         train_dataset = raw_datasets["train"]
@@ -731,7 +717,7 @@ def main():
             )
         # print_dataset_example(train_dataset[0])
 
-    if training_args.do_eval and not data_args.preprocessed_dataset:
+    if training_args.do_eval:
         max_target_length = data_args.val_max_target_length
         if "validation" not in raw_datasets:
             raise ValueError("--do_eval requires a validation dataset")
@@ -752,7 +738,7 @@ def main():
             )
         # print_dataset_example(eval_dataset[0])
 
-    if training_args.do_predict and not data_args.preprocessed_dataset:
+    if training_args.do_predict:
         max_target_length = data_args.val_max_target_length
         if "test" not in raw_datasets:
             raise ValueError("--do_predict requires a test dataset")

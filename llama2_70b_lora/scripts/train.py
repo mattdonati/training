@@ -145,28 +145,48 @@ def main(args):
         per_device_train_batch_size=args.per_device_train_batch_size,
         per_device_eval_batch_size=args.per_device_eval_batch_size,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
-        optim=args.optim,
         learning_rate=args.learning_rate,
-        fp16=args.fp16,
-        bf16=args.bf16,
         max_grad_norm=args.max_grad_norm,
         weight_decay=args.weight_decay,
         warmup_ratio=args.warmup_ratio,
         lr_scheduler_type=args.lr_scheduler_type,
         num_train_epochs=args.num_train_epochs,
-        eval_strategy="steps",#evaluation_strategy="steps",
-        save_strategy="no",
         max_steps=args.max_steps,
         eval_steps=args.eval_steps,
-        eval_delay=int(0.125*gbs+2)*args.eval_steps,
-        save_steps=args.save_steps,
         logging_steps=args.logging_steps,
+        save_steps=args.save_steps,
         push_to_hub=args.push_to_hub,
         gradient_checkpointing=args.use_gradient_checkpointing,
         hub_model_id=args.hub_model_id,
-        report_to="tensorboard",
         seed=args.seed,
         deepspeed=args.deepspeed,
+        optim=args.optim,
+        fp16=args.fp16,
+        bf16=args.bf16,
+        report_to="tensorboard",
+        eval_strategy="steps",
+        save_strategy="no",
+        eval_delay=int(0.125 * gbs + 2) * args.eval_steps,
+        # The following were from the "Temporary" section, now integrated.
+        #attn_implementation="flash_attention_2",
+        #torch_dtype="bfloat16",
+        # Assuming `use_auth_token` is a typo and should be `use_auth_token`.
+        #use_auth_token=True,
+        logging_strategy="steps",
+        save_total_limit=10,
+        overwrite_output_dir=True,
+        ddp_backend="nccl",
+        ddp_timeout=36000,
+        #preprocessing_num_workers=16,
+        # The following arguments are from the command line and are handled by the HfArgumentParser.
+        # They are not part of the TrainingArguments constructor.
+        # max_source_length=4000,
+        # max_target_length=2000,
+        # train_file,
+        # validation_file,
+        # text_column,
+        # summary_column,
+        # The `do_train` was a syntax error and is not a valid argument for `TrainingArguments`.
     )
 
     model = create_and_prepare_model(args)
@@ -174,9 +194,9 @@ def main(args):
 
     # datasets
     ## ToDo uncomment once drive goes public
-    # train_url = "https://drive.google.com/file/d/1-JgY1mEafcJ7qhggt6UR3OEKAciIPd5s/view?usp=sharing"
-    # eval_url =  "https://drive.google.com/file/d/1jrm6Lacrq49AYv0uB_Qy22xRmfPixQvs/view?usp=sharing"
-    # dataset = load_dataset("parquet", data_files={'train': train_url, 'validation': eval_url})
+    #train_url = "https://drive.google.com/file/d/1-JgY1mEafcJ7qhggt6UR3OEKAciIPd5s/view?usp=sharing"
+    #eval_url =  "https://drive.google.com/file/d/1jrm6Lacrq49AYv0uB_Qy22xRmfPixQvs/view?usp=sharing"
+    #dataset = load_dataset("parquet", data_files={'train': train_url, 'validation': eval_url})
     dataset = load_dataset(
         "parquet",
         data_files={

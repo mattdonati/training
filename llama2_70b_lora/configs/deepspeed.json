@@ -31,7 +31,7 @@
  "device": "none"
 },
 "offload_param": {
-            "device": "none"
+"device": "none"
 },
  "overlap_comm": true,
  "contiguous_gradients": true,

@@ -16,8 +16,8 @@ spec:
   - name: workers
     template:
       spec:
-        parallelism: 1
-        completions: 1
+        parallelism: 2
+        completions: 2
         backoffLimit: 0
         #suspend: true #dws
         template:
@@ -81,7 +81,7 @@ spec:
                 driver: gcsfuse.csi.storage.gke.io
                 volumeAttributes:
                   bucketName: rick-mlperf
-                  mountOptions: "only-dir=dp-mlperf/model,implicit-dirs"
+                  mountOptions: "only-dir=meta-llama--Llama-2-70B-hf,implicit-dirs"
                   fileCacheCapacity: "-1Mi"
                   fileCacheForRangeRead: "true"
                   metadataCacheTTLSeconds: "-1"
@@ -122,7 +122,7 @@ spec:
               - name: MASTER_PORT
                 value: "3389"
               - name: NODE_COUNT
-                value: "1"
+                value: "2"
               - name: NODE_RANK
                 valueFrom:
                   fieldRef:
@@ -144,7 +144,7 @@ spec:
                 chmod +x /app/training.sh
                 NUM_GPU_PER_NODE=8
                 echo "Starting training, saving checkpoints to /mnt/local-checkpoints"
-                bash /app/training.sh "\${MASTER_ADDR}" "\${MASTER_PORT}" "\${NODE_RANK}" "\${NODE_COUNT}" "$NUM_GPU_PER_NODE" "8" "1024" "16"
+                bash /app/training.sh "\${MASTER_ADDR}" "\${MASTER_PORT}" "\${NODE_RANK}" "\${NODE_COUNT}" "$NUM_GPU_PER_NODE" "2" "128" "16"
                 echo "Training finished. Copying checkpoints to persistent storage."
                 # Only the rank 0 node should perform the copy to avoid race conditions.
                 if [ "\${NODE_RANK}" -eq 0 ]; then

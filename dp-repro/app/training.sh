@@ -44,63 +44,63 @@ echo ""
 # Write deepspeed config
 cat <<EOT >ds_config.json
 {
-    "bfloat16": {
-        "enabled": true
-    },
-    "optimizer": {
-        "type": "AdamW",
-        "params": {
-            "lr": "auto",
-            "betas": "auto",
-            "eps": "auto",
-            "weight_decay": "auto"
-        }
-    },
-    "scheduler": {
-        "type": "WarmupDecayLR",
-        "params": {
-            "last_batch_iteration": -1,
-            "total_num_steps": "auto",
-            "warmup_min_lr": "auto",
-            "warmup_max_lr": "auto",
-            "warmup_num_steps": "auto"
-        }
-    },
-    "zero_optimization": {
-        "stage": 3,
-        "offload_optimizer": {
-            "device": "none",
-            "pin_memory": true
-        },
-        "offload_param": {
-            "device": "none",
-            "pin_memory": true
-        },
-        "overlap_comm": true,
-        "contiguous_gradients": true,
-        "sub_group_size": 1e9,
-        "reduce_scatter": true,
-        "stage3_prefetch_bucket_size": 1e9,
-        "stage3_param_persistence_threshold": "auto",
-        "stage3_max_live_parameters": 1e9,
-        "stage3_max_reuse_distance": 1e9,
-        "stage3_gather_16bit_weights_on_model_save": true,
-        "zero_hpz_partition_size": $NUM_GPU_PER_NODE,
-        "zero_quantized_gradients": false,
-        "zero_quantized_weights": false, 
-	    "reduce_bucket_size": "auto" 
-    },
-    "gradient_accumulation_steps": "auto",
-    "gradient_clipping": "auto",
-    "steps_per_print": 1,
-    "train_batch_size": "auto",
-    "train_micro_batch_size_per_gpu": "auto",
-    "communication_data_type": "fp32",
-    "wall_clock_breakdown": false,
-    "checkpoint": {
-        "use_node_local_storage": true,
-        "load_universal": true
-    }
+ "fp16": {
+ "enabled": false
+ },
+ "bf16": {
+ "enabled": true
+ },
+ "optimizer": {
+ "type": "Adam",
+ "params": {
+ "lr": "auto",
+ "betas": [0.9, 0.999],
+ "eps": 1e-8,
+ "weight_decay": "auto",
+ "torch_adam": true,
+ "adam_w_mode": true
+ }
+ },
+ "scheduler": {
+ "type": "WarmupCosineLR",
+ "params": {
+ "total_num_steps": "auto",
+ "warmup_min_ratio": 0.03,
+ "warmup_num_steps": "auto"
+ }
+ },
+  
+"zero_optimization": {
+ "stage": 3,
+ "offload_optimizer": {
+ "device": "none"
+},
+"offload_param": {
+"device": "none"
+},
+ "overlap_comm": true,
+ "contiguous_gradients": true,
+ "sub_group_size": 1e9,
+ "reduce_bucket_size": 3e9,
+ "stage3_prefetch_bucket_size": 3e9,
+ "stage3_param_persistence_threshold": 1e6,
+ "stage3_max_live_parameters": 1.5e9,
+ "stage3_max_reuse_distance": 1e9,
+ "stage3_gather_16bit_weights_on_model_save": true,
+ "memory_efficient_linear": true,
+ "round_robin_gradients": true
+ },
+ "gradient_accumulation_steps": "auto",
+ "gradient_clipping": "auto",
+ "steps_per_print": 10,
+ "train_batch_size": "auto",
+ "train_micro_batch_size_per_gpu": "auto",
+ "wall_clock_breakdown": false,
+ "activation_checkpointing": {
+ "partition_activations": true,
+ "contiguous_memory_optimization": true,
+ "number_checkpoints": 4
+ }
 }
 EOT
 
@@ -127,8 +127,10 @@ DATA_DIR="/mount/data"
 DEEPSPEED_CONFIG="$(realpath ds_config.json)"
 MODEL="/mount/base-model"
 MODEL_OUTPUT_NAME="trained-model"
-TRAIN_FILE="$DATA_DIR/10K.csv"
-EVAL_FILE="$DATA_DIR/1K.csv"
+#TRAIN_FILE="$DATA_DIR/10K.csv"
+#EVAL_FILE="$DATA_DIR/1K.csv"
+TRAIN_FILE="$DATA_DIR/train-00000-of-00001.parquet"
+EVAL_FILE="$DATA_DIR/validation-00000-of-00001.parquet"
 OUTPUT_DIR="/mount/local-checkpoints"
 
 mkdir -p "$OUTPUT_DIR"
@@ -178,7 +180,7 @@ OMP_NUM_THREADS=$NUM_CPU_CORES poetry run deepspeed \
     --save_steps 800 \
     --save_total_limit 10 \
     --num_train_epochs 1 \
-    --learning_rate 2e-6 \
+    --learning_rate 4e-4 \
     --warmup_steps 400 \
     --model_name_or_path $MODEL \
     --max_source_length 4000 \
