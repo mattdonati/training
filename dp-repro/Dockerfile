@@ -32,10 +32,11 @@ RUN ln -s /root/.local/bin/poetry /usr/local/bin/poetry
 RUN poetry self add keyrings.google-artifactregistry-auth && \
     poetry config virtualenvs.create false
 
-COPY app/pyproject.toml app/poetry.lock /app/
+#COPY app/pyproject.toml app/poetry.lock /app/
+COPY app/pyproject.toml /app/
 #RUN --mount=type=cache,target=/root/.cache/pypoetry \
 #    --mount=type=secret,id=gcp-key \
 #    GOOGLE_APPLICATION_CREDENTIALS="/run/secrets/gcp-key" \
-RUN poetry lock
+#RUN poetry lock
 RUN  poetry install --no-root --only main
 COPY app/* /app/

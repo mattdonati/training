@@ -833,11 +833,11 @@ def main():
                 "qkv_proj,o_proj".split(",")
             ),
         )
-        #if args.use_gradient_checkpointing:
-        #    model.gradient_checkpointing_enable()
+        if args.use_gradient_checkpointing:
+            model.gradient_checkpointing_enable()
         model = get_peft_model(model, peft_config)
-        #model.print_trainable_parameters()
-        #peft_module_casting_to_bf16(model, training_args)
+        model.print_trainable_parameters()
+        peft_module_casting_to_bf16(model, training_args)
 
     # Initialize our Trainer
     trainer = CustomTrainer(
