@@ -35,6 +35,8 @@ import evaluate
 import torch
 from datasets import load_dataset, load_metric
 from torch.distributed.elastic.multiprocessing.errors import record
+from peft import LoraConfig, get_peft_model
+from peft.tuners.lora import LoraLayer
 
 import transformers
 from transformers import (
@@ -338,6 +340,10 @@ class DataTrainingArguments:
         default=True, metadata={"help": "Whether to dataset preprocessed"}
     )
 
+    use_peft_lora: bool = field(
+        default=True, metadata={"help": "Whether to peft lora"}
+    )
+
     def __post_init__(self):
         if self.streaming:
             require_version("datasets>=2.0.0", "The streaming feature requires `datasets>=2.0.0`")
@@ -551,6 +557,7 @@ def main():
     elif model_args.model_name_or_path:
         tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path,
                                                   padding_side='right',
+                                                  trust_remote_code=True,
                                                   **tokenizer_kwargs)
     else:
         raise ValueError(
@@ -800,6 +807,37 @@ def main():
         labels = labels[:, 1:].reshape(-1)
         preds = preds[:, :-1].reshape(-1)
         return metric.compute(predictions=preds, references=labels)
+    
+    #lora: --lora_r 8 --lora_alpha 32 --lora_dropout 0.1 
+    def peft_module_casting_to_bf16(model, args):
+      for name, module in model.named_modules():
+        if isinstance(module, LoraLayer):
+            if args.bf16:
+                module = module.to(torch.bfloat16)
+        if "norm" in name:
+            module = module.to(torch.float32)
+        if any(x in name for x in ["lm_head", "embed_tokens", "wte", "wpe"]):
+            if hasattr(module, "weight"):
+                if args.bf16 and module.weight.dtype == torch.float32:
+                    module = module.to(torch.bfloat16)
+
+    peft_config = None
+    if data_args.use_peft_lora:
+        peft_config = LoraConfig(
+            lora_alpha=32,
+            lora_dropout=0.1,
+            r=8,
+            bias="none",
+            task_type="CAUSAL_LM",
+            target_modules=(
+                "qkv_proj,o_proj".split(",")
+            ),
+        )
+        #if args.use_gradient_checkpointing:
+        #    model.gradient_checkpointing_enable()
+        model = get_peft_model(model, peft_config)
+        #model.print_trainable_parameters()
+        #peft_module_casting_to_bf16(model, training_args)
 
     # Initialize our Trainer
     trainer = CustomTrainer(
@@ -816,7 +854,12 @@ def main():
         if training_args.do_eval and not is_torch_tpu_available()
         else None,
     )
+    
+    if data_args.use_peft_lora:
+        trainer.model.print_trainable_parameters()
 
+    if data_args.use_peft_lora:
+        peft_module_casting_to_bf16(trainer.model, training_args)
     # with MlflowConnectionClient():
     #    mlflow.set_experiment(os.environ.get('MLFLOW_EXPERIMENT', 'DialpadGPT-Pretraining-HPC-Cluster'))
     #    mlflow.set_experiment_tags({'team': 'nlp', 'version': '0.0.0'})

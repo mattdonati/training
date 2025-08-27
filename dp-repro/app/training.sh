@@ -87,7 +87,7 @@ cat <<EOT >ds_config.json
  "stage3_max_live_parameters": 1.5e9,
  "stage3_max_reuse_distance": 1e9,
  "stage3_gather_16bit_weights_on_model_save": true,
- "memory_efficient_linear": true,
+ "memory_efficient_linear": false,
  "round_robin_gradients": true
  },
  "gradient_accumulation_steps": "auto",
@@ -162,8 +162,7 @@ poetry run python3 -c "import torch; print('Torch version:', torch.__version__);
 
 LOGFILE="$OUTPUT_DIR/log-$NODE_RANK.txt"
 >$LOGFILE
-
-OMP_NUM_THREADS=$NUM_CPU_CORES poetry run deepspeed \
+PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" OMP_NUM_THREADS=$NUM_CPU_CORES poetry run deepspeed \
     --hostfile=$HOSTFILE --no_ssh \
     --node_rank=$NODE_RANK \
     --master_addr=$MASTER_NODE_ADDRESS \
@@ -175,7 +174,7 @@ OMP_NUM_THREADS=$NUM_CPU_CORES poetry run deepspeed \
     --torch_dtype bfloat16 \
     --use_auth_token True \
     --logging_strategy steps \
-    --logging_steps 1 \
+    --logging_steps 24 \
     --save_strategy steps \
     --save_steps 800 \
     --save_total_limit 10 \
@@ -183,8 +182,8 @@ OMP_NUM_THREADS=$NUM_CPU_CORES poetry run deepspeed \
     --learning_rate 4e-4 \
     --warmup_steps 400 \
     --model_name_or_path $MODEL \
-    --max_source_length 4000 \
-    --max_target_length 2000 \
+    --max_source_length 2048\
+    --max_target_length 1024 \
     --do_train \
     --train_file $TRAIN_FILE \
     --validation_file $EVAL_FILE \
@@ -198,8 +197,12 @@ OMP_NUM_THREADS=$NUM_CPU_CORES poetry run deepspeed \
     --per_device_eval_batch_size 1 \
     --ddp_backend nccl \
     --ddp_timeout 36000 \
-    --gradient_checkpointing \
     --preprocessing_num_workers $NUM_CPU_CORES \
+    --weight_decay 0.0001 \
+    --warmup_ratio 0 \
+    --max_grad_norm 0.3 \
+    --max_steps 1024 \
+    --logging_steps 24 --eval_steps 48 \
     --deepspeed $DEEPSPEED_CONFIG
 
 echo "Training completed."

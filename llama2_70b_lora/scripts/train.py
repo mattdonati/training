@@ -109,7 +109,7 @@ class ScriptArguments:
         metadata={"help": "Enables Flash attention for training."},
     )
     use_peft_lora: Optional[bool] = field(
-        default=True,
+        default=False,
         metadata={"help": "Enables PEFT LoRA for training."},
     )
     use_gradient_checkpointing: Optional[bool] = field(

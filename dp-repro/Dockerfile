@@ -22,7 +22,7 @@ WORKDIR /app
 RUN wget https://www.python.org/ftp/python/3.11.12/Python-3.11.12.tgz && \
 	tar xvf Python-3.11.12.tgz && rm Python-3.11.12.tgz && \
 	cd Python-3.11.12 && ./configure --enable-optimizations && make install && \
-	rm -rf /app/Python-3.11.12 && ln -s "$(which python3)" /usr/local/bin/python && \
+	rm -rf /app/Python-3.11.12 && ln -s "$(which python3)" /usr/local/bin/python
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
 RUN echo 'export PATH="/root/.local/bin:$PATH"' >> ~/.bashrc
