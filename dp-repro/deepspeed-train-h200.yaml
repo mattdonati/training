@@ -81,7 +81,7 @@ spec:
                 driver: gcsfuse.csi.storage.gke.io
                 volumeAttributes:
                   bucketName: rick-mlperf
-                  mountOptions: "only-dir=llama-7b,implicit-dirs"
+                  mountOptions: "only-dir=meta-llama--Llama-2-70B-hf,implicit-dirs"
                   fileCacheCapacity: "-1Mi"
                   fileCacheForRangeRead: "true"
                   metadataCacheTTLSeconds: "-1"

@@ -627,7 +627,7 @@ def main():
         logger.warning('>>> enable gradient_checkpointing')
         # https://github.com/huggingface/transformers/pull/27020
         # https://github.com/huggingface/transformers/issues/28335
-        training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
+        training_args.gradient_checkpointing_kwargs = {"use_reentrant": True}
 
     # Another experimental feature is Flash Attention 2 for faster training and
     # memory efficiency, see: https://huggingface.co/docs/transformers/main/en/perf_infer_gpu_one#flash-attention-2
@@ -833,8 +833,8 @@ def main():
                 "qkv_proj,o_proj".split(",")
             ),
         )
-        if args.use_gradient_checkpointing:
-            model.gradient_checkpointing_enable()
+        #if args.use_gradient_checkpointing:
+        #    model.gradient_checkpointing_enable()
         model = get_peft_model(model, peft_config)
         model.print_trainable_parameters()
         peft_module_casting_to_bf16(model, training_args)
@@ -858,8 +858,8 @@ def main():
     if data_args.use_peft_lora:
         trainer.model.print_trainable_parameters()
 
-    if data_args.use_peft_lora:
-        peft_module_casting_to_bf16(trainer.model, training_args)
+    #if data_args.use_peft_lora:
+    #    peft_module_casting_to_bf16(trainer.model, training_args)
     # with MlflowConnectionClient():
     #    mlflow.set_experiment(os.environ.get('MLFLOW_EXPERIMENT', 'DialpadGPT-Pretraining-HPC-Cluster'))
     #    mlflow.set_experiment_tags({'team': 'nlp', 'version': '0.0.0'})

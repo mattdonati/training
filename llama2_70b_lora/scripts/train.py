@@ -151,7 +151,7 @@ def main(args):
         warmup_ratio=args.warmup_ratio,
         lr_scheduler_type=args.lr_scheduler_type,
         num_train_epochs=args.num_train_epochs,
-        eval_strategy="steps",
+        evaluation_strategy="steps",
         save_strategy="no",
         max_steps=args.max_steps,
         eval_steps=args.eval_steps,

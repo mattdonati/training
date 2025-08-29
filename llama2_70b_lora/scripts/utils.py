@@ -5,7 +5,7 @@ import torch
 from datasets import load_dataset
 from peft import LoraConfig, get_peft_model
 from peft.tuners.lora import LoraLayer
-from transformers import AutoConfig, AutoModelForCausalLM
+from transformers import AutoModelForCausalLM
 
 
 def group_texts(examples, block_size):
@@ -128,36 +128,18 @@ def create_datasets(tokenizer, args):
 
 
 def create_and_prepare_model(args):
-    device_map = "auto" #None
+    device_map = None
 
-    #model = AutoModelForCausalLM.from_pretrained(
-    #    args.model_path,
-    #    device_map=device_map,
-    #    use_cache=not args.use_gradient_checkpointing,
-    #    trust_remote_code=True,
-    #    attn_implementation="flash_attention_2",
-    #    torch_dtype=torch.bfloat16,
-    #    max_position_embeddings=8192,
-    #)
-    config_kwargs = {
-        "cache_dir": None,
-        "revision": "main",
-        "use_auth_token": True,
-    }
-    if args.model_path:
-        config = AutoConfig.from_pretrained(args.model_path, trust_remote_code=True, **config_kwargs)
     model = AutoModelForCausalLM.from_pretrained(
-            args.model_path,
-            from_tf=bool(".ckpt" in args.model_path),
-            config=config,
-            #cache_dirargs.cache_dir,
-            #use_auth_token=True if args.use_auth_token else None,
-            torch_dtype=torch.bfloat16,
-            #low_cpu_mem_usage=model_args.low_cpu_mem_usage,
-            attn_implementation="flash_attention_2" if args.use_flash_attn else None,
-            device_map=device_map,  # don't use with deepspeed cpu offload
-            trust_remote_code=True,
-          )
+        args.model_path,
+        device_map=device_map,
+        use_cache=not args.use_gradient_checkpointing,
+        trust_remote_code=True,
+        attn_implementation="flash_attention_2",
+        torch_dtype=torch.bfloat16,
+        max_position_embeddings=8192,
+    )
+
     peft_config = None
     if args.use_peft_lora:
         peft_config = LoraConfig(
@@ -178,6 +160,8 @@ def create_and_prepare_model(args):
         model.print_trainable_parameters()
 
     return model
+
+
 def peft_module_casting_to_bf16(model, args):
     for name, module in model.named_modules():
         if isinstance(module, LoraLayer):

@@ -20,7 +20,7 @@ echo "Running on node rank $NODE_RANK of $NUM_NODES nodes with $NUM_GPU_PER_NODE
 source /usr/local/gib/scripts/set_nccl_env.sh
 
 echo "$(cat /usr/local/gib/scripts/set_nccl_env.sh)"
-
+export NCCL_DEBUG=INFO
 echo ""
 echo "Environment variables set:"
 echo "$(env)"
@@ -87,7 +87,7 @@ cat <<EOT >ds_config.json
  "stage3_max_live_parameters": 1.5e9,
  "stage3_max_reuse_distance": 1e9,
  "stage3_gather_16bit_weights_on_model_save": true,
- "memory_efficient_linear": false,
+ "memory_efficient_linear": true,
  "round_robin_gradients": true
  },
  "gradient_accumulation_steps": "auto",
@@ -203,6 +203,7 @@ PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" OMP_NUM_THREADS=$NUM_CPU_CORE
     --max_grad_norm 0.3 \
     --max_steps 1024 \
     --logging_steps 24 --eval_steps 48 \
+    --gradient_checkpointing True \
     --deepspeed $DEEPSPEED_CONFIG
 
 echo "Training completed."
