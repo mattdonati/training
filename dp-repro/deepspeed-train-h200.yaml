@@ -137,10 +137,10 @@ spec:
               args:
               - |
                 set -e
-                rm -r -f /app/traing.sh
-                rm -r -f /app/run_clm_sft_mlflow.py
-                cp /mount/data/training.sh /app/training.sh
-                cp /mount/data/run_clm_sft_mlflow.py /app/run_clm_sft_mlflow.py
+                rm -r -f app/traing.sh
+                rm -r -f app/run_clm_sft_mlflow.py
+                cp /mount/data/training.sh app/training.sh
+                cp /mount/data/run_clm_sft_mlflow.py app/run_clm_sft_mlflow.py
                 chmod +x /app/training.sh
                 NUM_GPU_PER_NODE=8
                 echo "Starting training, saving checkpoints to /mnt/local-checkpoints"

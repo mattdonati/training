@@ -128,11 +128,11 @@ def create_datasets(tokenizer, args):
 
 
 def create_and_prepare_model(args):
-    device_map = None
+    #device_map = None
 
     model = AutoModelForCausalLM.from_pretrained(
         args.model_path,
-        device_map=device_map,
+        #device_map=device_map,
         use_cache=not args.use_gradient_checkpointing,
         trust_remote_code=True,
         attn_implementation="flash_attention_2",
@@ -156,6 +156,10 @@ def create_and_prepare_model(args):
         )
         if args.use_gradient_checkpointing:
             model.gradient_checkpointing_enable()
+            #training_args.gradient_checkpointing_kwargs = {
+             #  "use_reentrant": False,
+             #   "preserve_rng_state": False  # This is the key addition
+             #}
         model = get_peft_model(model, peft_config)
         model.print_trainable_parameters()
 

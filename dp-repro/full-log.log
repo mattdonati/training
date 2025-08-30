@@ -1,0 +1,2196 @@
+Starting training, saving checkpoints to /mnt/local-checkpoints
+Running on node rank 0 of 2 nodes with 8 GPUs.
+#!/bin/bash
+export NCCL_NET=gIB
+export NCCL_CROSS_NIC=0
+export NCCL_NET_GDR_LEVEL=PIX
+export NCCL_P2P_NET_CHUNKSIZE=131072
+export NCCL_NVLS_CHUNKSIZE=524288
+export NCCL_IB_ADAPTIVE_ROUTING=1
+export NCCL_IB_QPS_PER_CONNECTION=4
+export NCCL_IB_TC=52
+export NCCL_IB_FIFO_TC=84
+
+# Use A3 Ultra config as fallback option
+export NCCL_TUNER_CONFIG_PATH=/usr/local/gib/configs/tuner_config_a3u.txtpb
+
+# Check if PCIe device exist
+check_pcie_device() {
+  local vendor_id="$1"
+  local device_id="$2"
+
+  for device_path in /sys/bus/pci/devices/*; do
+    if [[ -d "$device_path" ]]; then
+      current_vendor_id=$(cat "$device_path/vendor" 2>/dev/null)
+      current_device_id=$(cat "$device_path/device" 2>/dev/null)
+      if [[ "${current_vendor_id#0x}" == "$vendor_id" ]] && \
+        [[ "${current_device_id#0x}" == "$device_id" ]]; then
+        return 0
+      fi
+    fi
+  done
+
+  return 1
+}
+
+# NVIDIA B200
+if check_pcie_device 10de 2901; then
+    export NCCL_TUNER_CONFIG_PATH="/usr/local/gib/configs/tuner_config_a4.txtpb"
+    # echo "Found NVIDIA B200. Setting NCCL_TUNER_CONFIG_PATH to: $NCCL_TUNER_CONFIG_PATH"
+# NVIDIA H200
+elif check_pcie_device 10de 2335; then
+    export NCCL_TUNER_CONFIG_PATH="/usr/local/gib/configs/tuner_config_a3u.txtpb"
+    # echo "Found NVIDIA H200. Setting NCCL_TUNER_CONFIG_PATH to: $NCCL_TUNER_CONFIG_PATH"
+fi
+
+Environment variables set:
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-2_INFO={"0000:98:00.0":{"generic":{"deviceID":"0000:98:00.0"},"rdma":{"rdma_cm":"/dev/infiniband/rdma_cm","uverbs":"/dev/infiniband/uverbs2"}}}
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_GVNIC-1=0000:c0:14.0
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-6_INFO={"0000:cd:00.0":{"generic":{"deviceID":"0000:cd:00.0"},"rdma":{"rdma_cm":"/dev/infiniband/rdma_cm","uverbs":"/dev/infiniband/uverbs6"}}}
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_GVNIC-1_INFO={"0000:c0:14.0":{"generic":{"deviceID":"0000:c0:14.0"}}}
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-3_INFO={"0000:99:00.0":{"generic":{"deviceID":"0000:99:00.0"},"rdma":{"rdma_cm":"/dev/infiniband/rdma_cm","uverbs":"/dev/infiniband/uverbs3"}}}
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-7_INFO={"0000:ce:00.0":{"generic":{"deviceID":"0000:ce:00.0"},"rdma":{"rdma_cm":"/dev/infiniband/rdma_cm","uverbs":"/dev/infiniband/uverbs7"}}}
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-4_INFO={"0000:c6:00.0":{"generic":{"deviceID":"0000:c6:00.0"},"rdma":{"rdma_cm":"/dev/infiniband/rdma_cm","uverbs":"/dev/infiniband/uverbs4"}}}
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-1_INFO={"0000:92:00.0":{"generic":{"deviceID":"0000:92:00.0"},"rdma":{"rdma_cm":"/dev/infiniband/rdma_cm","uverbs":"/dev/infiniband/uverbs1"}}}
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-5_INFO={"0000:c7:00.0":{"generic":{"deviceID":"0000:c7:00.0"},"rdma":{"rdma_cm":"/dev/infiniband/rdma_cm","uverbs":"/dev/infiniband/uverbs5"}}}
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-5=0000:c7:00.0
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-4=0000:c6:00.0
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-7=0000:ce:00.0
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-6=0000:cd:00.0
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-0_INFO={"0000:91:00.0":{"generic":{"deviceID":"0000:91:00.0"},"rdma":{"rdma_cm":"/dev/infiniband/rdma_cm","uverbs":"/dev/infiniband/uverbs0"}}}
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-1=0000:92:00.0
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-0=0000:91:00.0
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-3=0000:99:00.0
+PCIDEVICE_NETWORKING_GKE_IO_NETWORKS_RDMA-2=0000:98:00.0
+NV_LIBCUBLAS_VERSION=12.6.4.1-1
+NVIDIA_VISIBLE_DEVICES=all
+KUBERNETES_SERVICE_PORT_HTTPS=443
+NCCL_IB_TC=52
+NODE_COUNT=2
+NV_NVML_DEV_VERSION=12.6.77-1
+NV_CUDNN_PACKAGE_NAME=libcudnn9-cuda-12
+KUBERNETES_SERVICE_PORT=443
+PYTHONUNBUFFERED=0
+NV_LIBNCCL_DEV_PACKAGE=libnccl-dev=2.23.4-1+cuda12.6
+NV_LIBNCCL_DEV_PACKAGE_VERSION=2.23.4-1
+HOSTNAME=train-workers-0-0
+NCCL_IB_FIFO_TC=84
+MASTER_PORT=3389
+NVIDIA_REQUIRE_CUDA=cuda>=12.6 brand=unknown,driver>=470,driver<471 brand=grid,driver>=470,driver<471 brand=tesla,driver>=470,driver<471 brand=nvidia,driver>=470,driver<471 brand=quadro,driver>=470,driver<471 brand=quadrortx,driver>=470,driver<471 brand=nvidiartx,driver>=470,driver<471 brand=vapps,driver>=470,driver<471 brand=vpc,driver>=470,driver<471 brand=vcs,driver>=470,driver<471 brand=vws,driver>=470,driver<471 brand=cloudgaming,driver>=470,driver<471 brand=unknown,driver>=535,driver<536 brand=grid,driver>=535,driver<536 brand=tesla,driver>=535,driver<536 brand=nvidia,driver>=535,driver<536 brand=quadro,driver>=535,driver<536 brand=quadrortx,driver>=535,driver<536 brand=nvidiartx,driver>=535,driver<536 brand=vapps,driver>=535,driver<536 brand=vpc,driver>=535,driver<536 brand=vcs,driver>=535,driver<536 brand=vws,driver>=535,driver<536 brand=cloudgaming,driver>=535,driver<536 brand=unknown,driver>=550,driver<551 brand=grid,driver>=550,driver<551 brand=tesla,driver>=550,driver<551 brand=nvidia,driver>=550,driver<551 brand=quadro,driver>=550,driver<551 brand=quadrortx,driver>=550,driver<551 brand=nvidiartx,driver>=550,driver<551 brand=vapps,driver>=550,driver<551 brand=vpc,driver>=550,driver<551 brand=vcs,driver>=550,driver<551 brand=vws,driver>=550,driver<551 brand=cloudgaming,driver>=550,driver<551
+NCCL_NVLS_CHUNKSIZE=524288
+NV_LIBCUBLAS_DEV_PACKAGE=libcublas-dev-12-6=12.6.4.1-1
+NV_NVTX_VERSION=12.6.77-1
+NV_CUDA_CUDART_DEV_VERSION=12.6.77-1
+NV_LIBCUSPARSE_VERSION=12.5.4.2-1
+NV_LIBNPP_VERSION=12.3.1.54-1
+NCCL_VERSION=2.23.4-1
+NCCL_NET_GDR_LEVEL=PIX
+PWD=/app
+JOB_COMPLETION_INDEX=0
+NV_CUDNN_PACKAGE=libcudnn9-cuda-12=9.5.1.17-1
+NVIDIA_DRIVER_CAPABILITIES=compute,utility
+NV_NVPROF_DEV_PACKAGE=cuda-nvprof-12-6=12.6.80-1
+NV_LIBNPP_PACKAGE=libnpp-12-6=12.3.1.54-1
+NCCL_DEBUG=DEBUG
+NV_LIBNCCL_DEV_PACKAGE_NAME=libnccl-dev
+NCCL_NET=gIB
+NV_LIBCUBLAS_DEV_VERSION=12.6.4.1-1
+NVIDIA_PRODUCT_NAME=CUDA
+NV_LIBCUBLAS_DEV_PACKAGE_NAME=libcublas-dev-12-6
+NV_CUDA_CUDART_VERSION=12.6.77-1
+HOME=/root
+KUBERNETES_PORT_443_TCP=tcp://10.0.32.1:443
+CUDA_VERSION=12.6.3
+NV_LIBCUBLAS_PACKAGE=libcublas-12-6=12.6.4.1-1
+NV_CUDA_NSIGHT_COMPUTE_DEV_PACKAGE=cuda-nsight-compute-12-6=12.6.3-1
+HOSTNAME_PREFIX=train
+NV_LIBNPP_DEV_PACKAGE=libnpp-dev-12-6=12.3.1.54-1
+NV_LIBCUBLAS_PACKAGE_NAME=libcublas-12-6
+NV_LIBNPP_DEV_VERSION=12.3.1.54-1
+NCCL_P2P_NET_CHUNKSIZE=131072
+MASTER_ADDR=train-workers-0-0.train
+NCCL_IB_QPS_PER_CONNECTION=4
+NV_LIBCUSPARSE_DEV_VERSION=12.5.4.2-1
+LIBRARY_PATH=/usr/local/cuda/lib64/stubs
+NV_CUDNN_VERSION=9.5.1.17-1
+SHLVL=1
+NODE_RANK=0
+NV_CUDA_LIB_VERSION=12.6.3-1
+NVARCH=x86_64
+KUBERNETES_PORT_443_TCP_PROTO=tcp
+NV_CUDNN_PACKAGE_DEV=libcudnn9-dev-cuda-12=9.5.1.17-1
+KUBERNETES_PORT_443_TCP_ADDR=10.0.32.1
+NV_LIBNCCL_PACKAGE=libnccl2=2.23.4-1+cuda12.6
+LD_LIBRARY_PATH=/usr/local/nvidia/lib64
+NV_CUDA_NSIGHT_COMPUTE_VERSION=12.6.3-1
+KUBERNETES_SERVICE_HOST=10.0.32.1
+NV_NVPROF_VERSION=12.6.80-1
+KUBERNETES_PORT=tcp://10.0.32.1:443
+KUBERNETES_PORT_443_TCP_PORT=443
+HOSTNAME_SUFFIX=workers
+PATH=/root/.local/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+NV_LIBNCCL_PACKAGE_NAME=libnccl2
+NV_LIBNCCL_PACKAGE_VERSION=2.23.4-1
+NCCL_TUNER_CONFIG_PATH=/usr/local/gib/configs/tuner_config_a3u.txtpb
+NCCL_IB_ADAPTIVE_ROUTING=1
+NCCL_CROSS_NIC=0
+_=/usr/bin/env
+
+DeepSpeed environment variables:
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export NCCL_DEBUG="INFO"
+export NCCL_IB_TC=52
+export NV_LIBNCCL_DEV_PACKAGE=libnccl-dev=2.23.4-1+cuda12.6
+export NV_LIBNCCL_DEV_PACKAGE_VERSION=2.23.4-1
+export NCCL_IB_FIFO_TC=84
+export NCCL_NVLS_CHUNKSIZE=524288
+export NCCL_VERSION=2.23.4-1
+export NCCL_NET_GDR_LEVEL=PIX
+export NCCL_DEBUG=DEBUG
+export NV_LIBNCCL_DEV_PACKAGE_NAME=libnccl-dev
+export NCCL_NET=gIB
+export NCCL_P2P_NET_CHUNKSIZE=131072
+export NCCL_IB_QPS_PER_CONNECTION=4
+export NV_LIBNCCL_PACKAGE=libnccl2=2.23.4-1+cuda12.6
+export NV_LIBNCCL_PACKAGE_NAME=libnccl2
+export NV_LIBNCCL_PACKAGE_VERSION=2.23.4-1
+export NCCL_TUNER_CONFIG_PATH=/usr/local/gib/configs/tuner_config_a3u.txtpb
+export NCCL_IB_ADAPTIVE_ROUTING=1
+export NCCL_CROSS_NIC=0
+
+Deepspeed hostfile with the following content:
+# This file is automatically generated by the training script.
+# It contains the list of nodes and their ranks.
+# Format: <node_name> slots=<num_slots>
+train-workers-0-0.train slots=8
+train-workers-0-1.train slots=8
+
+Listing directory contents.
+ls -l /mount/data
+total 423770
+-rw-r--r-- 1 root root 290440042 Aug 24 13:08 10K.csv
+-rw-r--r-- 1 root root  31391388 Aug 24 13:08 1K.csv
+-rw-r--r-- 1 root root      1852 Aug 21 19:38 Dockerfile.txt
+-rw-r--r-- 1 root root      8132 Aug 24 19:45 mlperf_logging_utils.py
+-rw-r--r-- 1 root root    358053 Aug 21 23:16 poetry.lock
+-rw-r--r-- 1 root root      1010 Aug 21 23:16 pyproject.toml
+-rw-r--r-- 1 root root     38319 Aug 29 23:13 run_clm_sft_mlflow-original.py
+-rw-r--r-- 1 root root     40560 Aug 29 23:48 run_clm_sft_mlflow.py
+-rw-r--r-- 1 root root 108961020 Aug 26 04:08 train-00000-of-00001.parquet
+-rw-r--r-- 1 root root      5873 Aug 24 12:28 training-original.sh
+-rw-r--r-- 1 root root      5788 Aug 30 01:20 training.sh
+-rw-r--r-- 1 root root   2685523 Aug 26 04:08 validation-00000-of-00001.parquet
+
+ls -l /mount/base-model
+total 15693139
+-rw-r--r-- 1 root root       7627 Aug 27 18:16 LICENSE
+-rw-r--r-- 1 root root      40883 Aug 27 18:16 README.md
+-rw-r--r-- 1 root root       4691 Aug 27 18:16 USE_POLICY.md
+-rw-r--r-- 1 root root        826 Aug 27 18:16 config.json
+-rw-r--r-- 1 root root        185 Aug 27 18:16 generation_config.json
+-rw-r--r-- 1 root root 4976698672 Aug 27 18:16 model-00001-of-00004.safetensors
+-rw-r--r-- 1 root root 4999802720 Aug 27 18:16 model-00002-of-00004.safetensors
+-rw-r--r-- 1 root root 4915916176 Aug 27 18:16 model-00003-of-00004.safetensors
+-rw-r--r-- 1 root root 1168138808 Aug 27 18:16 model-00004-of-00004.safetensors
+-rw-r--r-- 1 root root      23950 Aug 27 18:16 model.safetensors.index.json
+-rw-r--r-- 1 root root         73 Aug 27 18:16 special_tokens_map.json
+-rw-r--r-- 1 root root    9085658 Aug 27 18:16 tokenizer.json
+-rw-r--r-- 1 root root      50500 Aug 27 18:16 tokenizer_config.json
+
+
+Starting training using:
+- master node address train-workers-0-0.train
+- port 3389
+- node rank 0
+- total nodes 2
+- GPUs per node 8
+- batch size per GPU 2
+- and accumulation batch size 128.
+
+Skipping virtualenv creation, as specified in config file.
+Torch version: 2.6.0+cu124
+CUDA available: True
+NCCL version: (2, 21, 5)
+Skipping virtualenv creation, as specified in config file.
+[2025-08-30 01:21:02,808] [INFO] [real_accelerator.py:219:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+df: /root/.triton/autotune: No such file or directory
+[2025-08-30 01:21:11,263] [INFO] [runner.py:607:main] cmd = /usr/local/bin/python3.11 -u -m deepspeed.launcher.launch --world_info=eyJ0cmFpbi13b3JrZXJzLTAtMC50cmFpbiI6IFswLCAxLCAyLCAzLCA0LCA1LCA2LCA3XSwgInRyYWluLXdvcmtlcnMtMC0xLnRyYWluIjogWzAsIDEsIDIsIDMsIDQsIDUsIDYsIDddfQ== --master_addr=train-workers-0-0.train --master_port=3389 --node_rank=0 --enable_each_rank_log=None run_clm_sft_mlflow.py --report_to mlflow --attn_implementation flash_attention_2 --bf16 --torch_dtype bfloat16 --use_auth_token True --logging_strategy steps --logging_steps 24 --save_strategy steps --save_steps 800 --save_total_limit 10 --num_train_epochs 1 --learning_rate 4e-4 --warmup_steps 400 --model_name_or_path /mount/base-model --max_source_length 2048 --max_target_length 1024 --do_train --train_file /mount/data/train-00000-of-00001.parquet --validation_file /mount/data/validation-00000-of-00001.parquet --text_column hinted_prompt --summary_column response --output_dir /mount/local-checkpoints --overwrite_output_dir --per_device_train_batch_size 2 --gradient_accumulation_steps 4 --eval_strategy no --per_device_eval_batch_size 1 --ddp_backend nccl --ddp_timeout 36000 --preprocessing_num_workers 16 --weight_decay 0.0001 --warmup_ratio 0 --max_grad_norm 0.3 --max_steps 1024 --logging_steps 24 --eval_steps 48 --gradient_checkpointing True --deepspeed /app/ds_config.json
+[2025-08-30 01:21:12,625] [INFO] [real_accelerator.py:219:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NCCL_IB_TC=52
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NV_LIBNCCL_DEV_PACKAGE=libnccl-dev=2.23.4-1+cuda12.6
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NV_LIBNCCL_DEV_PACKAGE_VERSION=2.23.4-1
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NCCL_IB_FIFO_TC=84
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NCCL_NVLS_CHUNKSIZE=524288
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NCCL_VERSION=2.23.4-1
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NCCL_NET_GDR_LEVEL=PIX
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NCCL_DEBUG=DEBUG
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NV_LIBNCCL_DEV_PACKAGE_NAME=libnccl-dev
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NCCL_NET=gIB
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NCCL_P2P_NET_CHUNKSIZE=131072
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NCCL_IB_QPS_PER_CONNECTION=4
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NV_LIBNCCL_PACKAGE=libnccl2=2.23.4-1+cuda12.6
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NV_LIBNCCL_PACKAGE_NAME=libnccl2
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NV_LIBNCCL_PACKAGE_VERSION=2.23.4-1
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NCCL_TUNER_CONFIG_PATH=/usr/local/gib/configs/tuner_config_a3u.txtpb
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NCCL_IB_ADAPTIVE_ROUTING=1
+[2025-08-30 01:21:15,568] [INFO] [launch.py:139:main] 0 NCCL_CROSS_NIC=0
+[2025-08-30 01:21:15,568] [INFO] [launch.py:146:main] WORLD INFO DICT: {'train-workers-0-0.train': [0, 1, 2, 3, 4, 5, 6, 7], 'train-workers-0-1.train': [0, 1, 2, 3, 4, 5, 6, 7]}
+[2025-08-30 01:21:15,568] [INFO] [launch.py:152:main] nnodes=2, num_local_procs=8, node_rank=0
+[2025-08-30 01:21:15,568] [INFO] [launch.py:163:main] global_rank_mapping=defaultdict(<class 'list'>, {'train-workers-0-0.train': [0, 1, 2, 3, 4, 5, 6, 7], 'train-workers-0-1.train': [8, 9, 10, 11, 12, 13, 14, 15]})
+[2025-08-30 01:21:15,568] [INFO] [launch.py:164:main] dist_world_size=16
+[2025-08-30 01:21:15,568] [INFO] [launch.py:168:main] Setting CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+[2025-08-30 01:21:15,569] [INFO] [launch.py:256:main] process 1756 spawned with command: ['/usr/local/bin/python3.11', '-u', 'run_clm_sft_mlflow.py', '--local_rank=0', '--report_to', 'mlflow', '--attn_implementation', 'flash_attention_2', '--bf16', '--torch_dtype', 'bfloat16', '--use_auth_token', 'True', '--logging_strategy', 'steps', '--logging_steps', '24', '--save_strategy', 'steps', '--save_steps', '800', '--save_total_limit', '10', '--num_train_epochs', '1', '--learning_rate', '4e-4', '--warmup_steps', '400', '--model_name_or_path', '/mount/base-model', '--max_source_length', '2048', '--max_target_length', '1024', '--do_train', '--train_file', '/mount/data/train-00000-of-00001.parquet', '--validation_file', '/mount/data/validation-00000-of-00001.parquet', '--text_column', 'hinted_prompt', '--summary_column', 'response', '--output_dir', '/mount/local-checkpoints', '--overwrite_output_dir', '--per_device_train_batch_size', '2', '--gradient_accumulation_steps', '4', '--eval_strategy', 'no', '--per_device_eval_batch_size', '1', '--ddp_backend', 'nccl', '--ddp_timeout', '36000', '--preprocessing_num_workers', '16', '--weight_decay', '0.0001', '--warmup_ratio', '0', '--max_grad_norm', '0.3', '--max_steps', '1024', '--logging_steps', '24', '--eval_steps', '48', '--gradient_checkpointing', 'True', '--deepspeed', '/app/ds_config.json']
+[2025-08-30 01:21:15,569] [INFO] [launch.py:256:main] process 1757 spawned with command: ['/usr/local/bin/python3.11', '-u', 'run_clm_sft_mlflow.py', '--local_rank=1', '--report_to', 'mlflow', '--attn_implementation', 'flash_attention_2', '--bf16', '--torch_dtype', 'bfloat16', '--use_auth_token', 'True', '--logging_strategy', 'steps', '--logging_steps', '24', '--save_strategy', 'steps', '--save_steps', '800', '--save_total_limit', '10', '--num_train_epochs', '1', '--learning_rate', '4e-4', '--warmup_steps', '400', '--model_name_or_path', '/mount/base-model', '--max_source_length', '2048', '--max_target_length', '1024', '--do_train', '--train_file', '/mount/data/train-00000-of-00001.parquet', '--validation_file', '/mount/data/validation-00000-of-00001.parquet', '--text_column', 'hinted_prompt', '--summary_column', 'response', '--output_dir', '/mount/local-checkpoints', '--overwrite_output_dir', '--per_device_train_batch_size', '2', '--gradient_accumulation_steps', '4', '--eval_strategy', 'no', '--per_device_eval_batch_size', '1', '--ddp_backend', 'nccl', '--ddp_timeout', '36000', '--preprocessing_num_workers', '16', '--weight_decay', '0.0001', '--warmup_ratio', '0', '--max_grad_norm', '0.3', '--max_steps', '1024', '--logging_steps', '24', '--eval_steps', '48', '--gradient_checkpointing', 'True', '--deepspeed', '/app/ds_config.json']
+[2025-08-30 01:21:15,570] [INFO] [launch.py:256:main] process 1758 spawned with command: ['/usr/local/bin/python3.11', '-u', 'run_clm_sft_mlflow.py', '--local_rank=2', '--report_to', 'mlflow', '--attn_implementation', 'flash_attention_2', '--bf16', '--torch_dtype', 'bfloat16', '--use_auth_token', 'True', '--logging_strategy', 'steps', '--logging_steps', '24', '--save_strategy', 'steps', '--save_steps', '800', '--save_total_limit', '10', '--num_train_epochs', '1', '--learning_rate', '4e-4', '--warmup_steps', '400', '--model_name_or_path', '/mount/base-model', '--max_source_length', '2048', '--max_target_length', '1024', '--do_train', '--train_file', '/mount/data/train-00000-of-00001.parquet', '--validation_file', '/mount/data/validation-00000-of-00001.parquet', '--text_column', 'hinted_prompt', '--summary_column', 'response', '--output_dir', '/mount/local-checkpoints', '--overwrite_output_dir', '--per_device_train_batch_size', '2', '--gradient_accumulation_steps', '4', '--eval_strategy', 'no', '--per_device_eval_batch_size', '1', '--ddp_backend', 'nccl', '--ddp_timeout', '36000', '--preprocessing_num_workers', '16', '--weight_decay', '0.0001', '--warmup_ratio', '0', '--max_grad_norm', '0.3', '--max_steps', '1024', '--logging_steps', '24', '--eval_steps', '48', '--gradient_checkpointing', 'True', '--deepspeed', '/app/ds_config.json']
+[2025-08-30 01:21:15,571] [INFO] [launch.py:256:main] process 1759 spawned with command: ['/usr/local/bin/python3.11', '-u', 'run_clm_sft_mlflow.py', '--local_rank=3', '--report_to', 'mlflow', '--attn_implementation', 'flash_attention_2', '--bf16', '--torch_dtype', 'bfloat16', '--use_auth_token', 'True', '--logging_strategy', 'steps', '--logging_steps', '24', '--save_strategy', 'steps', '--save_steps', '800', '--save_total_limit', '10', '--num_train_epochs', '1', '--learning_rate', '4e-4', '--warmup_steps', '400', '--model_name_or_path', '/mount/base-model', '--max_source_length', '2048', '--max_target_length', '1024', '--do_train', '--train_file', '/mount/data/train-00000-of-00001.parquet', '--validation_file', '/mount/data/validation-00000-of-00001.parquet', '--text_column', 'hinted_prompt', '--summary_column', 'response', '--output_dir', '/mount/local-checkpoints', '--overwrite_output_dir', '--per_device_train_batch_size', '2', '--gradient_accumulation_steps', '4', '--eval_strategy', 'no', '--per_device_eval_batch_size', '1', '--ddp_backend', 'nccl', '--ddp_timeout', '36000', '--preprocessing_num_workers', '16', '--weight_decay', '0.0001', '--warmup_ratio', '0', '--max_grad_norm', '0.3', '--max_steps', '1024', '--logging_steps', '24', '--eval_steps', '48', '--gradient_checkpointing', 'True', '--deepspeed', '/app/ds_config.json']
+[2025-08-30 01:21:15,571] [INFO] [launch.py:256:main] process 1760 spawned with command: ['/usr/local/bin/python3.11', '-u', 'run_clm_sft_mlflow.py', '--local_rank=4', '--report_to', 'mlflow', '--attn_implementation', 'flash_attention_2', '--bf16', '--torch_dtype', 'bfloat16', '--use_auth_token', 'True', '--logging_strategy', 'steps', '--logging_steps', '24', '--save_strategy', 'steps', '--save_steps', '800', '--save_total_limit', '10', '--num_train_epochs', '1', '--learning_rate', '4e-4', '--warmup_steps', '400', '--model_name_or_path', '/mount/base-model', '--max_source_length', '2048', '--max_target_length', '1024', '--do_train', '--train_file', '/mount/data/train-00000-of-00001.parquet', '--validation_file', '/mount/data/validation-00000-of-00001.parquet', '--text_column', 'hinted_prompt', '--summary_column', 'response', '--output_dir', '/mount/local-checkpoints', '--overwrite_output_dir', '--per_device_train_batch_size', '2', '--gradient_accumulation_steps', '4', '--eval_strategy', 'no', '--per_device_eval_batch_size', '1', '--ddp_backend', 'nccl', '--ddp_timeout', '36000', '--preprocessing_num_workers', '16', '--weight_decay', '0.0001', '--warmup_ratio', '0', '--max_grad_norm', '0.3', '--max_steps', '1024', '--logging_steps', '24', '--eval_steps', '48', '--gradient_checkpointing', 'True', '--deepspeed', '/app/ds_config.json']
+[2025-08-30 01:21:15,571] [INFO] [launch.py:256:main] process 1761 spawned with command: ['/usr/local/bin/python3.11', '-u', 'run_clm_sft_mlflow.py', '--local_rank=5', '--report_to', 'mlflow', '--attn_implementation', 'flash_attention_2', '--bf16', '--torch_dtype', 'bfloat16', '--use_auth_token', 'True', '--logging_strategy', 'steps', '--logging_steps', '24', '--save_strategy', 'steps', '--save_steps', '800', '--save_total_limit', '10', '--num_train_epochs', '1', '--learning_rate', '4e-4', '--warmup_steps', '400', '--model_name_or_path', '/mount/base-model', '--max_source_length', '2048', '--max_target_length', '1024', '--do_train', '--train_file', '/mount/data/train-00000-of-00001.parquet', '--validation_file', '/mount/data/validation-00000-of-00001.parquet', '--text_column', 'hinted_prompt', '--summary_column', 'response', '--output_dir', '/mount/local-checkpoints', '--overwrite_output_dir', '--per_device_train_batch_size', '2', '--gradient_accumulation_steps', '4', '--eval_strategy', 'no', '--per_device_eval_batch_size', '1', '--ddp_backend', 'nccl', '--ddp_timeout', '36000', '--preprocessing_num_workers', '16', '--weight_decay', '0.0001', '--warmup_ratio', '0', '--max_grad_norm', '0.3', '--max_steps', '1024', '--logging_steps', '24', '--eval_steps', '48', '--gradient_checkpointing', 'True', '--deepspeed', '/app/ds_config.json']
+[2025-08-30 01:21:15,572] [INFO] [launch.py:256:main] process 1762 spawned with command: ['/usr/local/bin/python3.11', '-u', 'run_clm_sft_mlflow.py', '--local_rank=6', '--report_to', 'mlflow', '--attn_implementation', 'flash_attention_2', '--bf16', '--torch_dtype', 'bfloat16', '--use_auth_token', 'True', '--logging_strategy', 'steps', '--logging_steps', '24', '--save_strategy', 'steps', '--save_steps', '800', '--save_total_limit', '10', '--num_train_epochs', '1', '--learning_rate', '4e-4', '--warmup_steps', '400', '--model_name_or_path', '/mount/base-model', '--max_source_length', '2048', '--max_target_length', '1024', '--do_train', '--train_file', '/mount/data/train-00000-of-00001.parquet', '--validation_file', '/mount/data/validation-00000-of-00001.parquet', '--text_column', 'hinted_prompt', '--summary_column', 'response', '--output_dir', '/mount/local-checkpoints', '--overwrite_output_dir', '--per_device_train_batch_size', '2', '--gradient_accumulation_steps', '4', '--eval_strategy', 'no', '--per_device_eval_batch_size', '1', '--ddp_backend', 'nccl', '--ddp_timeout', '36000', '--preprocessing_num_workers', '16', '--weight_decay', '0.0001', '--warmup_ratio', '0', '--max_grad_norm', '0.3', '--max_steps', '1024', '--logging_steps', '24', '--eval_steps', '48', '--gradient_checkpointing', 'True', '--deepspeed', '/app/ds_config.json']
+[2025-08-30 01:21:15,572] [INFO] [launch.py:256:main] process 1763 spawned with command: ['/usr/local/bin/python3.11', '-u', 'run_clm_sft_mlflow.py', '--local_rank=7', '--report_to', 'mlflow', '--attn_implementation', 'flash_attention_2', '--bf16', '--torch_dtype', 'bfloat16', '--use_auth_token', 'True', '--logging_strategy', 'steps', '--logging_steps', '24', '--save_strategy', 'steps', '--save_steps', '800', '--save_total_limit', '10', '--num_train_epochs', '1', '--learning_rate', '4e-4', '--warmup_steps', '400', '--model_name_or_path', '/mount/base-model', '--max_source_length', '2048', '--max_target_length', '1024', '--do_train', '--train_file', '/mount/data/train-00000-of-00001.parquet', '--validation_file', '/mount/data/validation-00000-of-00001.parquet', '--text_column', 'hinted_prompt', '--summary_column', 'response', '--output_dir', '/mount/local-checkpoints', '--overwrite_output_dir', '--per_device_train_batch_size', '2', '--gradient_accumulation_steps', '4', '--eval_strategy', 'no', '--per_device_eval_batch_size', '1', '--ddp_backend', 'nccl', '--ddp_timeout', '36000', '--preprocessing_num_workers', '16', '--weight_decay', '0.0001', '--warmup_ratio', '0', '--max_grad_norm', '0.3', '--max_steps', '1024', '--logging_steps', '24', '--eval_steps', '48', '--gradient_checkpointing', 'True', '--deepspeed', '/app/ds_config.json']
+[2025-08-30 01:21:21,166] [INFO] [real_accelerator.py:219:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+[2025-08-30 01:21:21,203] [INFO] [real_accelerator.py:219:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+[2025-08-30 01:21:21,237] [INFO] [real_accelerator.py:219:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+[2025-08-30 01:21:21,303] [INFO] [real_accelerator.py:219:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+[2025-08-30 01:21:21,320] [INFO] [real_accelerator.py:219:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+[2025-08-30 01:21:21,325] [INFO] [real_accelerator.py:219:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+[2025-08-30 01:21:21,352] [INFO] [real_accelerator.py:219:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+[2025-08-30 01:21:21,438] [INFO] [real_accelerator.py:219:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+[2025-08-30 01:21:23,455] [INFO] [comm.py:652:init_distributed] cdb=None
+[2025-08-30 01:21:23,455] [INFO] [comm.py:652:init_distributed] cdb=None
+[2025-08-30 01:21:23,455] [INFO] [comm.py:652:init_distributed] cdb=None
+[2025-08-30 01:21:23,455] [INFO] [comm.py:652:init_distributed] cdb=None
+[2025-08-30 01:21:23,514] [INFO] [comm.py:652:init_distributed] cdb=None
+[2025-08-30 01:21:23,534] [INFO] [comm.py:652:init_distributed] cdb=None
+[2025-08-30 01:21:23,535] [INFO] [comm.py:683:init_distributed] Initializing TorchBackend in DeepSpeed with backend nccl
+[2025-08-30 01:21:23,565] [INFO] [comm.py:652:init_distributed] cdb=None
+[2025-08-30 01:21:23,568] [INFO] [comm.py:652:init_distributed] cdb=None
+2025-08-30 01:21:24,708 - __main__ - WARNING - Process rank: 5, device: cuda:5, n_gpu: 1distributed training: True, 16-bits training: False
+2025-08-30 01:21:24,708 - __main__ - WARNING - Backend: nccl
+2025-08-30 01:21:24,708 - __main__ - INFO - Training/evaluation parameters TrainingArguments(
+_n_gpu=1,
+accelerator_config={'split_batches': False, 'dispatch_batches': None, 'even_batches': True, 'use_seedable_sampler': True, 'non_blocking': False, 'gradient_accumulation_kwargs': None, 'use_configured_state': False},
+adafactor=False,
+adam_beta1=0.9,
+adam_beta2=0.999,
+adam_epsilon=1e-08,
+auto_find_batch_size=False,
+average_tokens_across_devices=False,
+batch_eval_metrics=False,
+bf16=True,
+bf16_full_eval=False,
+data_seed=None,
+dataloader_drop_last=False,
+dataloader_num_workers=0,
+dataloader_persistent_workers=False,
+dataloader_pin_memory=True,
+dataloader_prefetch_factor=None,
+ddp_backend=nccl,
+ddp_broadcast_buffers=None,
+ddp_bucket_cap_mb=None,
+ddp_find_unused_parameters=None,
+ddp_timeout=36000,
+debug=[],
+deepspeed=/app/ds_config.json,
+disable_tqdm=False,
+do_eval=False,
+do_predict=False,
+do_train=True,
+eval_accumulation_steps=None,
+eval_delay=0,
+eval_do_concat_batches=True,
+eval_on_start=False,
+eval_steps=48.0,
+eval_strategy=IntervalStrategy.NO,
+eval_use_gather_object=False,
+fp16=False,
+fp16_backend=auto,
+fp16_full_eval=False,
+fp16_opt_level=O1,
+fsdp=[],
+fsdp_config={'min_num_params': 0, 'xla': False, 'xla_fsdp_v2': False, 'xla_fsdp_grad_ckpt': False},
+fsdp_min_num_params=0,
+fsdp_transformer_layer_cls_to_wrap=None,
+full_determinism=False,
+gradient_accumulation_steps=4,
+gradient_checkpointing=True,
+gradient_checkpointing_kwargs=None,
+greater_is_better=None,
+group_by_length=False,
+half_precision_backend=auto,
+hub_always_push=False,
+hub_model_id=None,
+hub_private_repo=None,
+hub_strategy=HubStrategy.EVERY_SAVE,
+hub_token=<HUB_TOKEN>,
+ignore_data_skip=False,
+include_for_metrics=[],
+include_inputs_for_metrics=False,
+include_num_input_tokens_seen=False,
+include_tokens_per_second=False,
+jit_mode_eval=False,
+label_names=None,
+label_smoothing_factor=0.0,
+learning_rate=0.0004,
+length_column_name=length,
+load_best_model_at_end=False,
+local_rank=5,
+log_level=passive,
+log_level_replica=warning,
+log_on_each_node=True,
+logging_dir=/mount/local-checkpoints/runs/Aug30_01-21-23_train-workers-0-0,
+logging_first_step=False,
+logging_nan_inf_filter=True,
+logging_steps=24,
+logging_strategy=IntervalStrategy.STEPS,
+lr_scheduler_kwargs={},
+lr_scheduler_type=SchedulerType.LINEAR,
+max_grad_norm=0.3,
+max_steps=1024,
+metric_for_best_model=None,
+mp_parameters=,
+neftune_noise_alpha=None,
+no_cuda=False,
+num_train_epochs=1.0,
+optim=OptimizerNames.ADAMW_TORCH,
+optim_args=None,
+optim_target_modules=None,
+output_dir=/mount/local-checkpoints,
+overwrite_output_dir=True,
+past_index=-1,
+per_device_eval_batch_size=1,
+per_device_train_batch_size=2,
+prediction_loss_only=False,
+push_to_hub=False,
+push_to_hub_model_id=None,
+push_to_hub_organization=None,
+push_to_hub_token=<PUSH_TO_HUB_TOKEN>,
+ray_scope=last,
+remove_unused_columns=True,
+report_to=['mlflow'],
+restore_callback_states_from_checkpoint=False,
+resume_from_checkpoint=None,
+run_name=/mount/local-checkpoints,
+save_on_each_node=False,
+save_only_model=False,
+save_safetensors=True,
+save_steps=800,
+save_strategy=SaveStrategy.STEPS,
+save_total_limit=10,
+seed=42,
+skip_memory_metrics=True,
+tf32=None,
+torch_compile=False,
+torch_compile_backend=None,
+torch_compile_mode=None,
+torch_empty_cache_steps=None,
+torchdynamo=None,
+tp_size=0,
+tpu_metrics_debug=False,
+tpu_num_cores=None,
+use_cpu=False,
+use_ipex=False,
+use_legacy_prediction_loop=False,
+use_liger_kernel=False,
+use_mps_device=False,
+warmup_ratio=0.0,
+warmup_steps=400,
+weight_decay=0.0001,
+)
+2025-08-30 01:21:24,752 - __main__ - WARNING - Process rank: 3, device: cuda:3, n_gpu: 1distributed training: True, 16-bits training: False
+2025-08-30 01:21:24,752 - __main__ - WARNING - Backend: nccl
+2025-08-30 01:21:24,752 - __main__ - INFO - Training/evaluation parameters TrainingArguments(
+_n_gpu=1,
+accelerator_config={'split_batches': False, 'dispatch_batches': None, 'even_batches': True, 'use_seedable_sampler': True, 'non_blocking': False, 'gradient_accumulation_kwargs': None, 'use_configured_state': False},
+adafactor=False,
+adam_beta1=0.9,
+adam_beta2=0.999,
+adam_epsilon=1e-08,
+auto_find_batch_size=False,
+average_tokens_across_devices=False,
+batch_eval_metrics=False,
+bf16=True,
+bf16_full_eval=False,
+data_seed=None,
+dataloader_drop_last=False,
+dataloader_num_workers=0,
+dataloader_persistent_workers=False,
+dataloader_pin_memory=True,
+dataloader_prefetch_factor=None,
+ddp_backend=nccl,
+ddp_broadcast_buffers=None,
+ddp_bucket_cap_mb=None,
+ddp_find_unused_parameters=None,
+ddp_timeout=36000,
+debug=[],
+deepspeed=/app/ds_config.json,
+disable_tqdm=False,
+do_eval=False,
+do_predict=False,
+do_train=True,
+eval_accumulation_steps=None,
+eval_delay=0,
+eval_do_concat_batches=True,
+eval_on_start=False,
+eval_steps=48.0,
+eval_strategy=IntervalStrategy.NO,
+eval_use_gather_object=False,
+fp16=False,
+fp16_backend=auto,
+fp16_full_eval=False,
+fp16_opt_level=O1,
+fsdp=[],
+fsdp_config={'min_num_params': 0, 'xla': False, 'xla_fsdp_v2': False, 'xla_fsdp_grad_ckpt': False},
+fsdp_min_num_params=0,
+fsdp_transformer_layer_cls_to_wrap=None,
+full_determinism=False,
+gradient_accumulation_steps=4,
+gradient_checkpointing=True,
+gradient_checkpointing_kwargs=None,
+greater_is_better=None,
+group_by_length=False,
+half_precision_backend=auto,
+hub_always_push=False,
+hub_model_id=None,
+hub_private_repo=None,
+hub_strategy=HubStrategy.EVERY_SAVE,
+hub_token=<HUB_TOKEN>,
+ignore_data_skip=False,
+include_for_metrics=[],
+include_inputs_for_metrics=False,
+include_num_input_tokens_seen=False,
+include_tokens_per_second=False,
+jit_mode_eval=False,
+label_names=None,
+label_smoothing_factor=0.0,
+learning_rate=0.0004,
+length_column_name=length,
+load_best_model_at_end=False,
+local_rank=3,
+log_level=passive,
+log_level_replica=warning,
+log_on_each_node=True,
+logging_dir=/mount/local-checkpoints/runs/Aug30_01-21-23_train-workers-0-0,
+logging_first_step=False,
+logging_nan_inf_filter=True,
+logging_steps=24,
+logging_strategy=IntervalStrategy.STEPS,
+lr_scheduler_kwargs={},
+lr_scheduler_type=SchedulerType.LINEAR,
+max_grad_norm=0.3,
+max_steps=1024,
+metric_for_best_model=None,
+mp_parameters=,
+neftune_noise_alpha=None,
+no_cuda=False,
+num_train_epochs=1.0,
+optim=OptimizerNames.ADAMW_TORCH,
+optim_args=None,
+optim_target_modules=None,
+output_dir=/mount/local-checkpoints,
+overwrite_output_dir=True,
+past_index=-1,
+per_device_eval_batch_size=1,
+per_device_train_batch_size=2,
+prediction_loss_only=False,
+push_to_hub=False,
+push_to_hub_model_id=None,
+push_to_hub_organization=None,
+push_to_hub_token=<PUSH_TO_HUB_TOKEN>,
+ray_scope=last,
+remove_unused_columns=True,
+report_to=['mlflow'],
+restore_callback_states_from_checkpoint=False,
+resume_from_checkpoint=None,
+run_name=/mount/local-checkpoints,
+save_on_each_node=False,
+save_only_model=False,
+save_safetensors=True,
+save_steps=800,
+save_strategy=SaveStrategy.STEPS,
+save_total_limit=10,
+seed=42,
+skip_memory_metrics=True,
+tf32=None,
+torch_compile=False,
+torch_compile_backend=None,
+torch_compile_mode=None,
+torch_empty_cache_steps=None,
+torchdynamo=None,
+tp_size=0,
+tpu_metrics_debug=False,
+tpu_num_cores=None,
+use_cpu=False,
+use_ipex=False,
+use_legacy_prediction_loop=False,
+use_liger_kernel=False,
+use_mps_device=False,
+warmup_ratio=0.0,
+warmup_steps=400,
+weight_decay=0.0001,
+)
+2025-08-30 01:21:24,755 - __main__ - WARNING - Process rank: 6, device: cuda:6, n_gpu: 1distributed training: True, 16-bits training: False
+2025-08-30 01:21:24,757 - __main__ - WARNING - Backend: nccl
+2025-08-30 01:21:24,757 - __main__ - INFO - Training/evaluation parameters TrainingArguments(
+_n_gpu=1,
+accelerator_config={'split_batches': False, 'dispatch_batches': None, 'even_batches': True, 'use_seedable_sampler': True, 'non_blocking': False, 'gradient_accumulation_kwargs': None, 'use_configured_state': False},
+adafactor=False,
+adam_beta1=0.9,
+adam_beta2=0.999,
+adam_epsilon=1e-08,
+auto_find_batch_size=False,
+average_tokens_across_devices=False,
+batch_eval_metrics=False,
+bf16=True,
+bf16_full_eval=False,
+data_seed=None,
+dataloader_drop_last=False,
+dataloader_num_workers=0,
+dataloader_persistent_workers=False,
+dataloader_pin_memory=True,
+dataloader_prefetch_factor=None,
+ddp_backend=nccl,
+ddp_broadcast_buffers=None,
+ddp_bucket_cap_mb=None,
+ddp_find_unused_parameters=None,
+ddp_timeout=36000,
+debug=[],
+deepspeed=/app/ds_config.json,
+disable_tqdm=False,
+do_eval=False,
+do_predict=False,
+do_train=True,
+eval_accumulation_steps=None,
+eval_delay=0,
+eval_do_concat_batches=True,
+eval_on_start=False,
+eval_steps=48.0,
+eval_strategy=IntervalStrategy.NO,
+eval_use_gather_object=False,
+fp16=False,
+fp16_backend=auto,
+fp16_full_eval=False,
+fp16_opt_level=O1,
+fsdp=[],
+fsdp_config={'min_num_params': 0, 'xla': False, 'xla_fsdp_v2': False, 'xla_fsdp_grad_ckpt': False},
+fsdp_min_num_params=0,
+fsdp_transformer_layer_cls_to_wrap=None,
+full_determinism=False,
+gradient_accumulation_steps=4,
+gradient_checkpointing=True,
+gradient_checkpointing_kwargs=None,
+greater_is_better=None,
+group_by_length=False,
+half_precision_backend=auto,
+hub_always_push=False,
+hub_model_id=None,
+hub_private_repo=None,
+hub_strategy=HubStrategy.EVERY_SAVE,
+hub_token=<HUB_TOKEN>,
+ignore_data_skip=False,
+include_for_metrics=[],
+include_inputs_for_metrics=False,
+include_num_input_tokens_seen=False,
+include_tokens_per_second=False,
+jit_mode_eval=False,
+label_names=None,
+label_smoothing_factor=0.0,
+learning_rate=0.0004,
+length_column_name=length,
+load_best_model_at_end=False,
+local_rank=6,
+log_level=passive,
+log_level_replica=warning,
+log_on_each_node=True,
+logging_dir=/mount/local-checkpoints/runs/Aug30_01-21-23_train-workers-0-0,
+logging_first_step=False,
+logging_nan_inf_filter=True,
+logging_steps=24,
+logging_strategy=IntervalStrategy.STEPS,
+lr_scheduler_kwargs={},
+lr_scheduler_type=SchedulerType.LINEAR,
+max_grad_norm=0.3,
+max_steps=1024,
+metric_for_best_model=None,
+mp_parameters=,
+neftune_noise_alpha=None,
+no_cuda=False,
+num_train_epochs=1.0,
+optim=OptimizerNames.ADAMW_TORCH,
+optim_args=None,
+optim_target_modules=None,
+output_dir=/mount/local-checkpoints,
+overwrite_output_dir=True,
+past_index=-1,
+per_device_eval_batch_size=1,
+per_device_train_batch_size=2,
+prediction_loss_only=False,
+push_to_hub=False,
+push_to_hub_model_id=None,
+push_to_hub_organization=None,
+push_to_hub_token=<PUSH_TO_HUB_TOKEN>,
+ray_scope=last,
+remove_unused_columns=True,
+report_to=['mlflow'],
+restore_callback_states_from_checkpoint=False,
+resume_from_checkpoint=None,
+run_name=/mount/local-checkpoints,
+save_on_each_node=False,
+save_only_model=False,
+save_safetensors=True,
+save_steps=800,
+save_strategy=SaveStrategy.STEPS,
+save_total_limit=10,
+seed=42,
+skip_memory_metrics=True,
+tf32=None,
+torch_compile=False,
+torch_compile_backend=None,
+torch_compile_mode=None,
+torch_empty_cache_steps=None,
+torchdynamo=None,
+tp_size=0,
+tpu_metrics_debug=False,
+tpu_num_cores=None,
+use_cpu=False,
+use_ipex=False,
+use_legacy_prediction_loop=False,
+use_liger_kernel=False,
+use_mps_device=False,
+warmup_ratio=0.0,
+warmup_steps=400,
+weight_decay=0.0001,
+)
+2025-08-30 01:21:24,786 - __main__ - WARNING - Process rank: 4, device: cuda:4, n_gpu: 1distributed training: True, 16-bits training: False
+2025-08-30 01:21:24,786 - __main__ - WARNING - Backend: nccl
+2025-08-30 01:21:24,786 - __main__ - INFO - Training/evaluation parameters TrainingArguments(
+_n_gpu=1,
+accelerator_config={'split_batches': False, 'dispatch_batches': None, 'even_batches': True, 'use_seedable_sampler': True, 'non_blocking': False, 'gradient_accumulation_kwargs': None, 'use_configured_state': False},
+adafactor=False,
+adam_beta1=0.9,
+adam_beta2=0.999,
+adam_epsilon=1e-08,
+auto_find_batch_size=False,
+average_tokens_across_devices=False,
+batch_eval_metrics=False,
+bf16=True,
+bf16_full_eval=False,
+data_seed=None,
+dataloader_drop_last=False,
+dataloader_num_workers=0,
+dataloader_persistent_workers=False,
+dataloader_pin_memory=True,
+dataloader_prefetch_factor=None,
+ddp_backend=nccl,
+ddp_broadcast_buffers=None,
+ddp_bucket_cap_mb=None,
+ddp_find_unused_parameters=None,
+ddp_timeout=36000,
+debug=[],
+deepspeed=/app/ds_config.json,
+disable_tqdm=False,
+do_eval=False,
+do_predict=False,
+do_train=True,
+eval_accumulation_steps=None,
+eval_delay=0,
+eval_do_concat_batches=True,
+eval_on_start=False,
+eval_steps=48.0,
+eval_strategy=IntervalStrategy.NO,
+eval_use_gather_object=False,
+fp16=False,
+fp16_backend=auto,
+fp16_full_eval=False,
+fp16_opt_level=O1,
+fsdp=[],
+fsdp_config={'min_num_params': 0, 'xla': False, 'xla_fsdp_v2': False, 'xla_fsdp_grad_ckpt': False},
+fsdp_min_num_params=0,
+fsdp_transformer_layer_cls_to_wrap=None,
+full_determinism=False,
+gradient_accumulation_steps=4,
+gradient_checkpointing=True,
+gradient_checkpointing_kwargs=None,
+greater_is_better=None,
+group_by_length=False,
+half_precision_backend=auto,
+hub_always_push=False,
+hub_model_id=None,
+hub_private_repo=None,
+hub_strategy=HubStrategy.EVERY_SAVE,
+hub_token=<HUB_TOKEN>,
+ignore_data_skip=False,
+include_for_metrics=[],
+include_inputs_for_metrics=False,
+include_num_input_tokens_seen=False,
+include_tokens_per_second=False,
+jit_mode_eval=False,
+label_names=None,
+label_smoothing_factor=0.0,
+learning_rate=0.0004,
+length_column_name=length,
+load_best_model_at_end=False,
+local_rank=4,
+log_level=passive,
+log_level_replica=warning,
+log_on_each_node=True,
+logging_dir=/mount/local-checkpoints/runs/Aug30_01-21-23_train-workers-0-0,
+logging_first_step=False,
+logging_nan_inf_filter=True,
+logging_steps=24,
+logging_strategy=IntervalStrategy.STEPS,
+lr_scheduler_kwargs={},
+lr_scheduler_type=SchedulerType.LINEAR,
+max_grad_norm=0.3,
+max_steps=1024,
+metric_for_best_model=None,
+mp_parameters=,
+neftune_noise_alpha=None,
+no_cuda=False,
+num_train_epochs=1.0,
+optim=OptimizerNames.ADAMW_TORCH,
+optim_args=None,
+optim_target_modules=None,
+output_dir=/mount/local-checkpoints,
+overwrite_output_dir=True,
+past_index=-1,
+per_device_eval_batch_size=1,
+per_device_train_batch_size=2,
+prediction_loss_only=False,
+push_to_hub=False,
+push_to_hub_model_id=None,
+push_to_hub_organization=None,
+push_to_hub_token=<PUSH_TO_HUB_TOKEN>,
+ray_scope=last,
+remove_unused_columns=True,
+report_to=['mlflow'],
+restore_callback_states_from_checkpoint=False,
+resume_from_checkpoint=None,
+run_name=/mount/local-checkpoints,
+save_on_each_node=False,
+save_only_model=False,
+save_safetensors=True,
+save_steps=800,
+save_strategy=SaveStrategy.STEPS,
+save_total_limit=10,
+seed=42,
+skip_memory_metrics=True,
+tf32=None,
+torch_compile=False,
+torch_compile_backend=None,
+torch_compile_mode=None,
+torch_empty_cache_steps=None,
+torchdynamo=None,
+tp_size=0,
+tpu_metrics_debug=False,
+tpu_num_cores=None,
+use_cpu=False,
+use_ipex=False,
+use_legacy_prediction_loop=False,
+use_liger_kernel=False,
+use_mps_device=False,
+warmup_ratio=0.0,
+warmup_steps=400,
+weight_decay=0.0001,
+)
+2025-08-30 01:21:24,794 - __main__ - WARNING - Process rank: 2, device: cuda:2, n_gpu: 1distributed training: True, 16-bits training: False
+2025-08-30 01:21:24,794 - __main__ - WARNING - Backend: nccl
+2025-08-30 01:21:24,795 - __main__ - INFO - Training/evaluation parameters TrainingArguments(
+_n_gpu=1,
+accelerator_config={'split_batches': False, 'dispatch_batches': None, 'even_batches': True, 'use_seedable_sampler': True, 'non_blocking': False, 'gradient_accumulation_kwargs': None, 'use_configured_state': False},
+adafactor=False,
+adam_beta1=0.9,
+adam_beta2=0.999,
+adam_epsilon=1e-08,
+auto_find_batch_size=False,
+average_tokens_across_devices=False,
+batch_eval_metrics=False,
+bf16=True,
+bf16_full_eval=False,
+data_seed=None,
+dataloader_drop_last=False,
+dataloader_num_workers=0,
+dataloader_persistent_workers=False,
+dataloader_pin_memory=True,
+dataloader_prefetch_factor=None,
+ddp_backend=nccl,
+ddp_broadcast_buffers=None,
+ddp_bucket_cap_mb=None,
+ddp_find_unused_parameters=None,
+ddp_timeout=36000,
+debug=[],
+deepspeed=/app/ds_config.json,
+disable_tqdm=False,
+do_eval=False,
+do_predict=False,
+do_train=True,
+eval_accumulation_steps=None,
+eval_delay=0,
+eval_do_concat_batches=True,
+eval_on_start=False,
+eval_steps=48.0,
+eval_strategy=IntervalStrategy.NO,
+eval_use_gather_object=False,
+fp16=False,
+fp16_backend=auto,
+fp16_full_eval=False,
+fp16_opt_level=O1,
+fsdp=[],
+fsdp_config={'min_num_params': 0, 'xla': False, 'xla_fsdp_v2': False, 'xla_fsdp_grad_ckpt': False},
+fsdp_min_num_params=0,
+fsdp_transformer_layer_cls_to_wrap=None,
+full_determinism=False,
+gradient_accumulation_steps=4,
+gradient_checkpointing=True,
+gradient_checkpointing_kwargs=None,
+greater_is_better=None,
+group_by_length=False,
+half_precision_backend=auto,
+hub_always_push=False,
+hub_model_id=None,
+hub_private_repo=None,
+hub_strategy=HubStrategy.EVERY_SAVE,
+hub_token=<HUB_TOKEN>,
+ignore_data_skip=False,
+include_for_metrics=[],
+include_inputs_for_metrics=False,
+include_num_input_tokens_seen=False,
+include_tokens_per_second=False,
+jit_mode_eval=False,
+label_names=None,
+label_smoothing_factor=0.0,
+learning_rate=0.0004,
+length_column_name=length,
+load_best_model_at_end=False,
+local_rank=2,
+log_level=passive,
+log_level_replica=warning,
+log_on_each_node=True,
+logging_dir=/mount/local-checkpoints/runs/Aug30_01-21-23_train-workers-0-0,
+logging_first_step=False,
+logging_nan_inf_filter=True,
+logging_steps=24,
+logging_strategy=IntervalStrategy.STEPS,
+lr_scheduler_kwargs={},
+lr_scheduler_type=SchedulerType.LINEAR,
+max_grad_norm=0.3,
+max_steps=1024,
+metric_for_best_model=None,
+mp_parameters=,
+neftune_noise_alpha=None,
+no_cuda=False,
+num_train_epochs=1.0,
+optim=OptimizerNames.ADAMW_TORCH,
+optim_args=None,
+optim_target_modules=None,
+output_dir=/mount/local-checkpoints,
+overwrite_output_dir=True,
+past_index=-1,
+per_device_eval_batch_size=1,
+per_device_train_batch_size=2,
+prediction_loss_only=False,
+push_to_hub=False,
+push_to_hub_model_id=None,
+push_to_hub_organization=None,
+push_to_hub_token=<PUSH_TO_HUB_TOKEN>,
+ray_scope=last,
+remove_unused_columns=True,
+report_to=['mlflow'],
+restore_callback_states_from_checkpoint=False,
+resume_from_checkpoint=None,
+run_name=/mount/local-checkpoints,
+save_on_each_node=False,
+save_only_model=False,
+save_safetensors=True,
+save_steps=800,
+save_strategy=SaveStrategy.STEPS,
+save_total_limit=10,
+seed=42,
+skip_memory_metrics=True,
+tf32=None,
+torch_compile=False,
+torch_compile_backend=None,
+torch_compile_mode=None,
+torch_empty_cache_steps=None,
+torchdynamo=None,
+tp_size=0,
+tpu_metrics_debug=False,
+tpu_num_cores=None,
+use_cpu=False,
+use_ipex=False,
+use_legacy_prediction_loop=False,
+use_liger_kernel=False,
+use_mps_device=False,
+warmup_ratio=0.0,
+warmup_steps=400,
+weight_decay=0.0001,
+)
+2025-08-30 01:21:24,806 - __main__ - WARNING - Process rank: 7, device: cuda:7, n_gpu: 1distributed training: True, 16-bits training: False
+2025-08-30 01:21:24,806 - __main__ - WARNING - Backend: nccl
+2025-08-30 01:21:24,807 - __main__ - INFO - Training/evaluation parameters TrainingArguments(
+_n_gpu=1,
+accelerator_config={'split_batches': False, 'dispatch_batches': None, 'even_batches': True, 'use_seedable_sampler': True, 'non_blocking': False, 'gradient_accumulation_kwargs': None, 'use_configured_state': False},
+adafactor=False,
+adam_beta1=0.9,
+adam_beta2=0.999,
+adam_epsilon=1e-08,
+auto_find_batch_size=False,
+average_tokens_across_devices=False,
+batch_eval_metrics=False,
+bf16=True,
+bf16_full_eval=False,
+data_seed=None,
+dataloader_drop_last=False,
+dataloader_num_workers=0,
+dataloader_persistent_workers=False,
+dataloader_pin_memory=True,
+dataloader_prefetch_factor=None,
+ddp_backend=nccl,
+ddp_broadcast_buffers=None,
+ddp_bucket_cap_mb=None,
+ddp_find_unused_parameters=None,
+ddp_timeout=36000,
+debug=[],
+deepspeed=/app/ds_config.json,
+disable_tqdm=False,
+do_eval=False,
+do_predict=False,
+do_train=True,
+eval_accumulation_steps=None,
+eval_delay=0,
+eval_do_concat_batches=True,
+eval_on_start=False,
+eval_steps=48.0,
+eval_strategy=IntervalStrategy.NO,
+eval_use_gather_object=False,
+fp16=False,
+fp16_backend=auto,
+fp16_full_eval=False,
+fp16_opt_level=O1,
+fsdp=[],
+fsdp_config={'min_num_params': 0, 'xla': False, 'xla_fsdp_v2': False, 'xla_fsdp_grad_ckpt': False},
+fsdp_min_num_params=0,
+fsdp_transformer_layer_cls_to_wrap=None,
+full_determinism=False,
+gradient_accumulation_steps=4,
+gradient_checkpointing=True,
+gradient_checkpointing_kwargs=None,
+greater_is_better=None,
+group_by_length=False,
+half_precision_backend=auto,
+hub_always_push=False,
+hub_model_id=None,
+hub_private_repo=None,
+hub_strategy=HubStrategy.EVERY_SAVE,
+hub_token=<HUB_TOKEN>,
+ignore_data_skip=False,
+include_for_metrics=[],
+include_inputs_for_metrics=False,
+include_num_input_tokens_seen=False,
+include_tokens_per_second=False,
+jit_mode_eval=False,
+label_names=None,
+label_smoothing_factor=0.0,
+learning_rate=0.0004,
+length_column_name=length,
+load_best_model_at_end=False,
+local_rank=7,
+log_level=passive,
+log_level_replica=warning,
+log_on_each_node=True,
+logging_dir=/mount/local-checkpoints/runs/Aug30_01-21-23_train-workers-0-0,
+logging_first_step=False,
+logging_nan_inf_filter=True,
+logging_steps=24,
+logging_strategy=IntervalStrategy.STEPS,
+lr_scheduler_kwargs={},
+lr_scheduler_type=SchedulerType.LINEAR,
+max_grad_norm=0.3,
+max_steps=1024,
+metric_for_best_model=None,
+mp_parameters=,
+neftune_noise_alpha=None,
+no_cuda=False,
+num_train_epochs=1.0,
+optim=OptimizerNames.ADAMW_TORCH,
+optim_args=None,
+optim_target_modules=None,
+output_dir=/mount/local-checkpoints,
+overwrite_output_dir=True,
+past_index=-1,
+per_device_eval_batch_size=1,
+per_device_train_batch_size=2,
+prediction_loss_only=False,
+push_to_hub=False,
+push_to_hub_model_id=None,
+push_to_hub_organization=None,
+push_to_hub_token=<PUSH_TO_HUB_TOKEN>,
+ray_scope=last,
+remove_unused_columns=True,
+report_to=['mlflow'],
+restore_callback_states_from_checkpoint=False,
+resume_from_checkpoint=None,
+run_name=/mount/local-checkpoints,
+save_on_each_node=False,
+save_only_model=False,
+save_safetensors=True,
+save_steps=800,
+save_strategy=SaveStrategy.STEPS,
+save_total_limit=10,
+seed=42,
+skip_memory_metrics=True,
+tf32=None,
+torch_compile=False,
+torch_compile_backend=None,
+torch_compile_mode=None,
+torch_empty_cache_steps=None,
+torchdynamo=None,
+tp_size=0,
+tpu_metrics_debug=False,
+tpu_num_cores=None,
+use_cpu=False,
+use_ipex=False,
+use_legacy_prediction_loop=False,
+use_liger_kernel=False,
+use_mps_device=False,
+warmup_ratio=0.0,
+warmup_steps=400,
+weight_decay=0.0001,
+)
+2025-08-30 01:21:24,814 - __main__ - WARNING - Process rank: 0, device: cuda:0, n_gpu: 1distributed training: True, 16-bits training: False
+2025-08-30 01:21:24,815 - __main__ - WARNING - Process rank: 1, device: cuda:1, n_gpu: 1distributed training: True, 16-bits training: False
+2025-08-30 01:21:24,815 - __main__ - WARNING - Backend: nccl
+2025-08-30 01:21:24,815 - __main__ - INFO - Training/evaluation parameters TrainingArguments(
+_n_gpu=1,
+accelerator_config={'split_batches': False, 'dispatch_batches': None, 'even_batches': True, 'use_seedable_sampler': True, 'non_blocking': False, 'gradient_accumulation_kwargs': None, 'use_configured_state': False},
+adafactor=False,
+adam_beta1=0.9,
+adam_beta2=0.999,
+adam_epsilon=1e-08,
+auto_find_batch_size=False,
+average_tokens_across_devices=False,
+batch_eval_metrics=False,
+bf16=True,
+bf16_full_eval=False,
+data_seed=None,
+dataloader_drop_last=False,
+dataloader_num_workers=0,
+dataloader_persistent_workers=False,
+dataloader_pin_memory=True,
+dataloader_prefetch_factor=None,
+ddp_backend=nccl,
+ddp_broadcast_buffers=None,
+ddp_bucket_cap_mb=None,
+ddp_find_unused_parameters=None,
+ddp_timeout=36000,
+debug=[],
+deepspeed=/app/ds_config.json,
+disable_tqdm=False,
+do_eval=False,
+do_predict=False,
+do_train=True,
+eval_accumulation_steps=None,
+eval_delay=0,
+eval_do_concat_batches=True,
+eval_on_start=False,
+eval_steps=48.0,
+eval_strategy=IntervalStrategy.NO,
+eval_use_gather_object=False,
+fp16=False,
+fp16_backend=auto,
+fp16_full_eval=False,
+fp16_opt_level=O1,
+fsdp=[],
+fsdp_config={'min_num_params': 0, 'xla': False, 'xla_fsdp_v2': False, 'xla_fsdp_grad_ckpt': False},
+fsdp_min_num_params=0,
+fsdp_transformer_layer_cls_to_wrap=None,
+full_determinism=False,
+gradient_accumulation_steps=4,
+gradient_checkpointing=True,
+gradient_checkpointing_kwargs=None,
+greater_is_better=None,
+group_by_length=False,
+half_precision_backend=auto,
+hub_always_push=False,
+hub_model_id=None,
+hub_private_repo=None,
+hub_strategy=HubStrategy.EVERY_SAVE,
+hub_token=<HUB_TOKEN>,
+ignore_data_skip=False,
+include_for_metrics=[],
+include_inputs_for_metrics=False,
+include_num_input_tokens_seen=False,
+include_tokens_per_second=False,
+jit_mode_eval=False,
+label_names=None,
+label_smoothing_factor=0.0,
+learning_rate=0.0004,
+length_column_name=length,
+load_best_model_at_end=False,
+local_rank=1,
+log_level=passive,
+log_level_replica=warning,
+log_on_each_node=True,
+logging_dir=/mount/local-checkpoints/runs/Aug30_01-21-23_train-workers-0-0,
+logging_first_step=False,
+logging_nan_inf_filter=True,
+logging_steps=24,
+logging_strategy=IntervalStrategy.STEPS,
+lr_scheduler_kwargs={},
+lr_scheduler_type=SchedulerType.LINEAR,
+max_grad_norm=0.3,
+max_steps=1024,
+metric_for_best_model=None,
+mp_parameters=,
+neftune_noise_alpha=None,
+no_cuda=False,
+num_train_epochs=1.0,
+optim=OptimizerNames.ADAMW_TORCH,
+optim_args=None,
+optim_target_modules=None,
+output_dir=/mount/local-checkpoints,
+overwrite_output_dir=True,
+past_index=-1,
+per_device_eval_batch_size=1,
+per_device_train_batch_size=2,
+prediction_loss_only=False,
+push_to_hub=False,
+push_to_hub_model_id=None,
+push_to_hub_organization=None,
+push_to_hub_token=<PUSH_TO_HUB_TOKEN>,
+ray_scope=last,
+remove_unused_columns=True,
+report_to=['mlflow'],
+restore_callback_states_from_checkpoint=False,
+resume_from_checkpoint=None,
+run_name=/mount/local-checkpoints,
+save_on_each_node=False,
+save_only_model=False,
+save_safetensors=True,
+save_steps=800,
+save_strategy=SaveStrategy.STEPS,
+save_total_limit=10,
+seed=42,
+skip_memory_metrics=True,
+tf32=None,
+torch_compile=False,
+torch_compile_backend=None,
+torch_compile_mode=None,
+torch_empty_cache_steps=None,
+torchdynamo=None,
+tp_size=0,
+tpu_metrics_debug=False,
+tpu_num_cores=None,
+use_cpu=False,
+use_ipex=False,
+use_legacy_prediction_loop=False,
+use_liger_kernel=False,
+use_mps_device=False,
+warmup_ratio=0.0,
+warmup_steps=400,
+weight_decay=0.0001,
+)
+2025-08-30 01:21:24,815 - __main__ - WARNING - Backend: nccl
+2025-08-30 01:21:24,816 - __main__ - INFO - Training/evaluation parameters TrainingArguments(
+_n_gpu=1,
+accelerator_config={'split_batches': False, 'dispatch_batches': None, 'even_batches': True, 'use_seedable_sampler': True, 'non_blocking': False, 'gradient_accumulation_kwargs': None, 'use_configured_state': False},
+adafactor=False,
+adam_beta1=0.9,
+adam_beta2=0.999,
+adam_epsilon=1e-08,
+auto_find_batch_size=False,
+average_tokens_across_devices=False,
+batch_eval_metrics=False,
+bf16=True,
+bf16_full_eval=False,
+data_seed=None,
+dataloader_drop_last=False,
+dataloader_num_workers=0,
+dataloader_persistent_workers=False,
+dataloader_pin_memory=True,
+dataloader_prefetch_factor=None,
+ddp_backend=nccl,
+ddp_broadcast_buffers=None,
+ddp_bucket_cap_mb=None,
+ddp_find_unused_parameters=None,
+ddp_timeout=36000,
+debug=[],
+deepspeed=/app/ds_config.json,
+disable_tqdm=False,
+do_eval=False,
+do_predict=False,
+do_train=True,
+eval_accumulation_steps=None,
+eval_delay=0,
+eval_do_concat_batches=True,
+eval_on_start=False,
+eval_steps=48.0,
+eval_strategy=IntervalStrategy.NO,
+eval_use_gather_object=False,
+fp16=False,
+fp16_backend=auto,
+fp16_full_eval=False,
+fp16_opt_level=O1,
+fsdp=[],
+fsdp_config={'min_num_params': 0, 'xla': False, 'xla_fsdp_v2': False, 'xla_fsdp_grad_ckpt': False},
+fsdp_min_num_params=0,
+fsdp_transformer_layer_cls_to_wrap=None,
+full_determinism=False,
+gradient_accumulation_steps=4,
+gradient_checkpointing=True,
+gradient_checkpointing_kwargs=None,
+greater_is_better=None,
+group_by_length=False,
+half_precision_backend=auto,
+hub_always_push=False,
+hub_model_id=None,
+hub_private_repo=None,
+hub_strategy=HubStrategy.EVERY_SAVE,
+hub_token=<HUB_TOKEN>,
+ignore_data_skip=False,
+include_for_metrics=[],
+include_inputs_for_metrics=False,
+include_num_input_tokens_seen=False,
+include_tokens_per_second=False,
+jit_mode_eval=False,
+label_names=None,
+label_smoothing_factor=0.0,
+learning_rate=0.0004,
+length_column_name=length,
+load_best_model_at_end=False,
+local_rank=0,
+log_level=passive,
+log_level_replica=warning,
+log_on_each_node=True,
+logging_dir=/mount/local-checkpoints/runs/Aug30_01-21-23_train-workers-0-0,
+logging_first_step=False,
+logging_nan_inf_filter=True,
+logging_steps=24,
+logging_strategy=IntervalStrategy.STEPS,
+lr_scheduler_kwargs={},
+lr_scheduler_type=SchedulerType.LINEAR,
+max_grad_norm=0.3,
+max_steps=1024,
+metric_for_best_model=None,
+mp_parameters=,
+neftune_noise_alpha=None,
+no_cuda=False,
+num_train_epochs=1.0,
+optim=OptimizerNames.ADAMW_TORCH,
+optim_args=None,
+optim_target_modules=None,
+output_dir=/mount/local-checkpoints,
+overwrite_output_dir=True,
+past_index=-1,
+per_device_eval_batch_size=1,
+per_device_train_batch_size=2,
+prediction_loss_only=False,
+push_to_hub=False,
+push_to_hub_model_id=None,
+push_to_hub_organization=None,
+push_to_hub_token=<PUSH_TO_HUB_TOKEN>,
+ray_scope=last,
+remove_unused_columns=True,
+report_to=['mlflow'],
+restore_callback_states_from_checkpoint=False,
+resume_from_checkpoint=None,
+run_name=/mount/local-checkpoints,
+save_on_each_node=False,
+save_only_model=False,
+save_safetensors=True,
+save_steps=800,
+save_strategy=SaveStrategy.STEPS,
+save_total_limit=10,
+seed=42,
+skip_memory_metrics=True,
+tf32=None,
+torch_compile=False,
+torch_compile_backend=None,
+torch_compile_mode=None,
+torch_empty_cache_steps=None,
+torchdynamo=None,
+tp_size=0,
+tpu_metrics_debug=False,
+tpu_num_cores=None,
+use_cpu=False,
+use_ipex=False,
+use_legacy_prediction_loop=False,
+use_liger_kernel=False,
+use_mps_device=False,
+warmup_ratio=0.0,
+warmup_steps=400,
+weight_decay=0.0001,
+)
+Using custom data configuration default-8737b1b8eab46e45
+Loading Dataset Infos from /usr/local/lib/python3.11/site-packages/datasets/packaged_modules/parquet
+Generating train split: 0 examples [00:00, ? examples/s]Generating train split: 1000 examples [00:00, 5216.56 examples/s]Generating train split: 2000 examples [00:00, 5431.92 examples/s]Generating train split: 3000 examples [00:00, 5688.86 examples/s]Generating train split: 3901 examples [00:01, 3200.05 examples/s]Generating train split: 3901 examples [00:01, 3786.52 examples/s]
+Generating validation split: 0 examples [00:00, ? examples/s]Generating validation split: 173 examples [00:00, 8810.17 examples/s]
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/configuration_auto.py:1099: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/configuration_auto.py:1099: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/configuration_auto.py:1099: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/configuration_auto.py:1099: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/configuration_auto.py:1099: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/configuration_auto.py:1099: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/configuration_auto.py:1099: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+Found cached dataset parquet (/root/.cache/huggingface/datasets/parquet/default-8737b1b8eab46e45/0.0.0/9d41700293b5cf3c3cee6167e8c49e37598331b6466506aecb40a8c11b6aa9f6)
+Loading Dataset info from /root/.cache/huggingface/datasets/parquet/default-8737b1b8eab46e45/0.0.0/9d41700293b5cf3c3cee6167e8c49e37598331b6466506aecb40a8c11b6aa9f6
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/configuration_auto.py:1099: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+[INFO|configuration_utils.py:691] 2025-08-30 01:21:28,706 >> loading configuration file /mount/base-model/config.json
+[INFO|configuration_utils.py:765] 2025-08-30 01:21:28,707 >> Model config LlamaConfig {
+  "architectures": [
+    "LlamaForCausalLM"
+  ],
+  "attention_bias": false,
+  "attention_dropout": 0.0,
+  "bos_token_id": 128000,
+  "eos_token_id": 128001,
+  "head_dim": 128,
+  "hidden_act": "silu",
+  "hidden_size": 4096,
+  "initializer_range": 0.02,
+  "intermediate_size": 14336,
+  "max_position_embeddings": 131072,
+  "mlp_bias": false,
+  "model_type": "llama",
+  "num_attention_heads": 32,
+  "num_hidden_layers": 32,
+  "num_key_value_heads": 8,
+  "pretraining_tp": 1,
+  "rms_norm_eps": 1e-05,
+  "rope_scaling": {
+    "factor": 8.0,
+    "high_freq_factor": 4.0,
+    "low_freq_factor": 1.0,
+    "original_max_position_embeddings": 8192,
+    "rope_type": "llama3"
+  },
+  "rope_theta": 500000.0,
+  "tie_word_embeddings": false,
+  "torch_dtype": "bfloat16",
+  "transformers_version": "4.51.3",
+  "use_cache": true,
+  "vocab_size": 128256
+}
+
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/tokenization_auto.py:898: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/tokenization_auto.py:898: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/tokenization_auto.py:898: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/tokenization_auto.py:898: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/tokenization_auto.py:898: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/tokenization_auto.py:898: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/tokenization_auto.py:898: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/tokenization_auto.py:898: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+[INFO|tokenization_utils_base.py:2058] 2025-08-30 01:21:30,309 >> loading file tokenizer.json
+[INFO|tokenization_utils_base.py:2058] 2025-08-30 01:21:30,309 >> loading file tokenizer.model
+[INFO|tokenization_utils_base.py:2058] 2025-08-30 01:21:30,309 >> loading file added_tokens.json
+[INFO|tokenization_utils_base.py:2058] 2025-08-30 01:21:30,309 >> loading file special_tokens_map.json
+[INFO|tokenization_utils_base.py:2058] 2025-08-30 01:21:30,309 >> loading file tokenizer_config.json
+[INFO|tokenization_utils_base.py:2058] 2025-08-30 01:21:30,309 >> loading file chat_template.jinja
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/auto_factory.py:476: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/auto_factory.py:476: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/auto_factory.py:476: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+[INFO|tokenization_utils_base.py:2323] 2025-08-30 01:21:31,566 >> Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/auto_factory.py:476: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/auto_factory.py:476: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/auto_factory.py:476: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/auto_factory.py:476: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/transformers/models/auto/auto_factory.py:476: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.
+  warnings.warn(
+[INFO|modeling_utils.py:1121] 2025-08-30 01:21:36,450 >> loading weights file /mount/base-model/model.safetensors.index.json
+[2025-08-30 01:21:36,463] [INFO] [config.py:733:__init__] Config mesh_device None world_size = 16
+[2025-08-30 01:21:36,463] [INFO] [config.py:733:__init__] Config mesh_device None world_size = 16
+[2025-08-30 01:21:36,463] [INFO] [config.py:733:__init__] Config mesh_device None world_size = 16
+[WARNING|logging.py:328] 2025-08-30 01:21:36,465 >> You are attempting to use Flash Attention 2.0 with a model not initialized on GPU. Make sure to move the model to GPU after initializing it on CPU with `model.to('cuda')`.
+[WARNING|logging.py:328] 2025-08-30 01:21:36,465 >> You are attempting to use Flash Attention 2.0 with a model not initialized on GPU. Make sure to move the model to GPU after initializing it on CPU with `model.to('cuda')`.
+[WARNING|logging.py:328] 2025-08-30 01:21:36,465 >> You are attempting to use Flash Attention 2.0 with a model not initialized on GPU. Make sure to move the model to GPU after initializing it on CPU with `model.to('cuda')`.
+[INFO|modeling_utils.py:2167] 2025-08-30 01:21:37,342 >> Instantiating LlamaForCausalLM model under default dtype torch.bfloat16.
+[INFO|modeling_utils.py:3726] 2025-08-30 01:21:37,342 >> Detected DeepSpeed ZeRO-3: activating zero.init() for this model
+[2025-08-30 01:21:37,342] [INFO] [config.py:733:__init__] Config mesh_device None world_size = 16
+[2025-08-30 01:21:37,342] [INFO] [config.py:733:__init__] Config mesh_device None world_size = 16
+[2025-08-30 01:21:37,343] [INFO] [config.py:733:__init__] Config mesh_device None world_size = 16
+[WARNING|logging.py:328] 2025-08-30 01:21:37,344 >> You are attempting to use Flash Attention 2.0 with a model not initialized on GPU. Make sure to move the model to GPU after initializing it on CPU with `model.to('cuda')`.
+[WARNING|logging.py:328] 2025-08-30 01:21:37,345 >> You are attempting to use Flash Attention 2.0 with a model not initialized on GPU. Make sure to move the model to GPU after initializing it on CPU with `model.to('cuda')`.
+[WARNING|logging.py:328] 2025-08-30 01:21:37,345 >> You are attempting to use Flash Attention 2.0 with a model not initialized on GPU. Make sure to move the model to GPU after initializing it on CPU with `model.to('cuda')`.
+[INFO|configuration_utils.py:1142] 2025-08-30 01:21:37,349 >> Generate config GenerationConfig {
+  "bos_token_id": 128000,
+  "eos_token_id": 128001
+}
+
+[2025-08-30 01:21:37,450] [INFO] [config.py:733:__init__] Config mesh_device None world_size = 16
+[WARNING|logging.py:328] 2025-08-30 01:21:37,453 >> You are attempting to use Flash Attention 2.0 with a model not initialized on GPU. Make sure to move the model to GPU after initializing it on CPU with `model.to('cuda')`.
+[2025-08-30 01:21:37,849] [INFO] [config.py:733:__init__] Config mesh_device None world_size = 16
+[WARNING|logging.py:328] 2025-08-30 01:21:37,851 >> You are attempting to use Flash Attention 2.0 with a model not initialized on GPU. Make sure to move the model to GPU after initializing it on CPU with `model.to('cuda')`.
+[2025-08-30 01:21:41,267] [INFO] [partition_parameters.py:348:__exit__] finished initializing model - num_params = 291, num_elems = 8.03B
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:12<00:37, 12.63s/it]Loading checkpoint shards:  25%|██▌       | 1/4 [00:12<00:37, 12.63s/it]Loading checkpoint shards:  25%|██▌       | 1/4 [00:12<00:37, 12.62s/it]Loading checkpoint shards:  25%|██▌       | 1/4 [00:12<00:37, 12.63s/it]Loading checkpoint shards:  25%|██▌       | 1/4 [00:12<00:37, 12.63s/it]Loading checkpoint shards:  25%|██▌       | 1/4 [00:12<00:37, 12.63s/it]Loading checkpoint shards:  25%|██▌       | 1/4 [00:12<00:37, 12.62s/it]Loading checkpoint shards:  25%|██▌       | 1/4 [00:15<00:45, 15.13s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:25<00:25, 12.54s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:25<00:25, 12.54s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:25<00:25, 12.54s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:25<00:25, 12.54s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:25<00:25, 12.54s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:25<00:25, 12.54s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:25<00:25, 12.54s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:27<00:27, 13.57s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:37<00:12, 12.36s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:37<00:12, 12.36s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:37<00:12, 12.36s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:37<00:12, 12.36s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:37<00:12, 12.37s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:37<00:12, 12.37s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:37<00:12, 12.36s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  8.31s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  8.31s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  9.84s/it]
+Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  9.84s/it]
+Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  8.32s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  9.84s/it]
+Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  8.31s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  9.84s/it]
+Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  8.32s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  9.84s/it]
+Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  8.32s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  9.84s/it]
+Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  8.31s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  9.84s/it]
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:39<00:12, 12.91s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:43<00:00,  9.19s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:43<00:00, 10.81s/it]
+[INFO|modeling_utils.py:4930] 2025-08-30 01:22:24,504 >> All model checkpoint weights were used when initializing LlamaForCausalLM.
+
+[INFO|modeling_utils.py:4938] 2025-08-30 01:22:24,504 >> All the weights of LlamaForCausalLM were initialized from the model checkpoint at /mount/base-model.
+If your task is similar to the task the model of the checkpoint was trained on, you can already use LlamaForCausalLM for predictions without further training.
+[INFO|configuration_utils.py:1095] 2025-08-30 01:22:24,506 >> loading configuration file /mount/base-model/generation_config.json
+[INFO|configuration_utils.py:1142] 2025-08-30 01:22:24,507 >> Generate config GenerationConfig {
+  "bos_token_id": 128000,
+  "do_sample": true,
+  "eos_token_id": 128001,
+  "temperature": 0.6,
+  "top_p": 0.9
+}
+
+2025-08-30 01:22:24,612 - __main__ - WARNING - >>> enable gradient_checkpointing
+2025-08-30 01:22:24,616 - __main__ - WARNING - >>> enable gradient_checkpointing
+2025-08-30 01:22:24,618 - __main__ - WARNING - >>> enable gradient_checkpointing
+2025-08-30 01:22:24,619 - __main__ - WARNING - >>> enable gradient_checkpointing
+2025-08-30 01:22:24,619 - __main__ - WARNING - >>> enable gradient_checkpointing
+2025-08-30 01:22:24,619 - __main__ - WARNING - >>> enable gradient_checkpointing
+2025-08-30 01:22:24,621 - __main__ - WARNING - >>> enable gradient_checkpointing
+2025-08-30 01:22:24,622 - __main__ - WARNING - >>> enable gradient_checkpointing
+Downloading builder script: 0.00B [00:00, ?B/s]Downloading builder script: 4.20kB [00:00, 13.6MB/s]
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+/app/run_clm_sft_mlflow.py:843: FutureWarning: `tokenizer` is deprecated and will be removed in version 5.0.0 for `CustomTrainer.__init__`. Use `processing_class` instead.
+  trainer = CustomTrainer(
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+[WARNING|trainer.py:783] 2025-08-30 01:22:25,645 >> No label_names provided for model class `PeftModelForCausalLM`. Since `PeftModel` hides base models input arguments, if label_names is not given, label_names can't be set automatically within `Trainer`. Note that empty label_names list will be used instead.
+/app/run_clm_sft_mlflow.py:843: FutureWarning: `tokenizer` is deprecated and will be removed in version 5.0.0 for `CustomTrainer.__init__`. Use `processing_class` instead.
+  trainer = CustomTrainer(
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+/app/run_clm_sft_mlflow.py:843: FutureWarning: `tokenizer` is deprecated and will be removed in version 5.0.0 for `CustomTrainer.__init__`. Use `processing_class` instead.
+  trainer = CustomTrainer(
+[WARNING|trainer.py:783] 2025-08-30 01:22:25,657 >> No label_names provided for model class `PeftModelForCausalLM`. Since `PeftModel` hides base models input arguments, if label_names is not given, label_names can't be set automatically within `Trainer`. Note that empty label_names list will be used instead.
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+[WARNING|trainer.py:783] 2025-08-30 01:22:25,662 >> No label_names provided for model class `PeftModelForCausalLM`. Since `PeftModel` hides base models input arguments, if label_names is not given, label_names can't be set automatically within `Trainer`. Note that empty label_names list will be used instead.
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+/app/run_clm_sft_mlflow.py:843: FutureWarning: `tokenizer` is deprecated and will be removed in version 5.0.0 for `CustomTrainer.__init__`. Use `processing_class` instead.
+  trainer = CustomTrainer(
+[WARNING|trainer.py:783] 2025-08-30 01:22:25,732 >> No label_names provided for model class `PeftModelForCausalLM`. Since `PeftModel` hides base models input arguments, if label_names is not given, label_names can't be set automatically within `Trainer`. Note that empty label_names list will be used instead.
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+Downloading builder script: 0.00B [00:00, ?B/s]Downloading builder script: 4.20kB [00:00, 19.2MB/s]
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+/app/run_clm_sft_mlflow.py:843: FutureWarning: `tokenizer` is deprecated and will be removed in version 5.0.0 for `CustomTrainer.__init__`. Use `processing_class` instead.
+  trainer = CustomTrainer(
+[INFO|trainer.py:698] 2025-08-30 01:22:25,842 >> max_steps is given, it will override any value given in num_train_epochs
+[INFO|trainer.py:748] 2025-08-30 01:22:25,842 >> Using auto half precision backend
+[WARNING|trainer.py:783] 2025-08-30 01:22:25,843 >> No label_names provided for model class `PeftModelForCausalLM`. Since `PeftModel` hides base models input arguments, if label_names is not given, label_names can't be set automatically within `Trainer`. Note that empty label_names list will be used instead.
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+Downloading builder script: 0.00B [00:00, ?B/s]Downloading builder script: 4.20kB [00:00, 14.2MB/s]
+/app/run_clm_sft_mlflow.py:843: FutureWarning: `tokenizer` is deprecated and will be removed in version 5.0.0 for `CustomTrainer.__init__`. Use `processing_class` instead.
+  trainer = CustomTrainer(
+[WARNING|trainer.py:783] 2025-08-30 01:22:26,008 >> No label_names provided for model class `PeftModelForCausalLM`. Since `PeftModel` hides base models input arguments, if label_names is not given, label_names can't be set automatically within `Trainer`. Note that empty label_names list will be used instead.
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+Gradient accumulation steps mismatch: GradientAccumulationPlugin has 1, DeepSpeed config has 4. Using DeepSpeed's value.
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+[2025-08-30 01:22:26,049] [INFO] [logging.py:128:log_dist] [Rank 0] DeepSpeed info: version=0.15.4, git-hash=unknown, git-branch=unknown
+[2025-08-30 01:22:26,049] [INFO] [config.py:733:__init__] Config mesh_device None world_size = 16
+/app/run_clm_sft_mlflow.py:843: FutureWarning: `tokenizer` is deprecated and will be removed in version 5.0.0 for `CustomTrainer.__init__`. Use `processing_class` instead.
+  trainer = CustomTrainer(
+[2025-08-30 01:22:26,057] [INFO] [logging.py:128:log_dist] [Rank 0] DeepSpeed Flops Profiler Enabled: False
+[2025-08-30 01:22:26,057] [INFO] [logging.py:128:log_dist] [Rank 0] Using DeepSpeed Optimizer param name adam as basic optimizer
+[2025-08-30 01:22:26,057] [INFO] [logging.py:128:log_dist] [Rank 0] Removing param_group that has no 'params' in the basic Optimizer
+[2025-08-30 01:22:26,060] [INFO] [logging.py:128:log_dist] [Rank 0] DeepSpeed Basic Optimizer = AdamW
+[2025-08-30 01:22:26,060] [INFO] [utils.py:59:is_zero_supported_optimizer] Checking ZeRO support for optimizer=AdamW type=<class 'torch.optim.adamw.AdamW'>
+[2025-08-30 01:22:26,060] [INFO] [logging.py:128:log_dist] [Rank 0] Creating fp16 ZeRO stage 3 optimizer, MiCS is enabled False, Hierarchical params gather False
+[2025-08-30 01:22:26,060] [INFO] [logging.py:128:log_dist] [Rank 0] Creating torch.bfloat16 ZeRO stage 3 optimizer
+[WARNING|trainer.py:783] 2025-08-30 01:22:26,061 >> No label_names provided for model class `PeftModelForCausalLM`. Since `PeftModel` hides base models input arguments, if label_names is not given, label_names can't be set automatically within `Trainer`. Note that empty label_names list will be used instead.
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+[2025-08-30 01:22:26,173] [INFO] [utils.py:781:see_memory_usage] Stage 3 initialize beginning
+[2025-08-30 01:22:26,173] [INFO] [utils.py:782:see_memory_usage] MA 2.77 GB         Max_MA 4.85 GB         CA 2.81 GB         Max_CA 5 GB 
+[2025-08-30 01:22:26,173] [INFO] [utils.py:789:see_memory_usage] CPU Virtual Memory:  used = 39.24 GB, percent = 1.4%
+[2025-08-30 01:22:26,176] [INFO] [stage3.py:166:__init__] Reduce bucket size 3000000000
+[2025-08-30 01:22:26,176] [INFO] [stage3.py:167:__init__] Prefetch bucket size 3000000000
+Downloading builder script: 0.00B [00:00, ?B/s]Downloading builder script: 4.20kB [00:00, 13.1MB/s]
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+/app/run_clm_sft_mlflow.py:843: FutureWarning: `tokenizer` is deprecated and will be removed in version 5.0.0 for `CustomTrainer.__init__`. Use `processing_class` instead.
+  trainer = CustomTrainer(
+[WARNING|trainer.py:783] 2025-08-30 01:22:26,264 >> No label_names provided for model class `PeftModelForCausalLM`. Since `PeftModel` hides base models input arguments, if label_names is not given, label_names can't be set automatically within `Trainer`. Note that empty label_names list will be used instead.
+trainable params: 2,097,152 || all params: 8,032,882,688 || trainable%: 0.02610709108366354
+[2025-08-30 01:22:26,280] [INFO] [utils.py:781:see_memory_usage] DeepSpeedZeRoOffload initialize [begin]
+[2025-08-30 01:22:26,281] [INFO] [utils.py:782:see_memory_usage] MA 2.77 GB         Max_MA 2.77 GB         CA 2.81 GB         Max_CA 3 GB 
+[2025-08-30 01:22:26,281] [INFO] [utils.py:789:see_memory_usage] CPU Virtual Memory:  used = 39.25 GB, percent = 1.4%
+Parameter Offload: Total persistent parameters: 2363392 in 129 params
+[2025-08-30 01:22:26,411] [INFO] [utils.py:781:see_memory_usage] DeepSpeedZeRoOffload initialize [end]
+[2025-08-30 01:22:26,412] [INFO] [utils.py:782:see_memory_usage] MA 0.94 GB         Max_MA 2.84 GB         CA 2.87 GB         Max_CA 3 GB 
+[2025-08-30 01:22:26,412] [INFO] [utils.py:789:see_memory_usage] CPU Virtual Memory:  used = 39.26 GB, percent = 1.4%
+[2025-08-30 01:22:26,511] [INFO] [utils.py:781:see_memory_usage] Before creating fp16 partitions
+[2025-08-30 01:22:26,511] [INFO] [utils.py:782:see_memory_usage] MA 0.94 GB         Max_MA 0.94 GB         CA 2.87 GB         Max_CA 3 GB 
+[2025-08-30 01:22:26,511] [INFO] [utils.py:789:see_memory_usage] CPU Virtual Memory:  used = 39.25 GB, percent = 1.4%
+[2025-08-30 01:22:27,251] [INFO] [utils.py:781:see_memory_usage] After creating fp16 partitions: 1
+[2025-08-30 01:22:27,252] [INFO] [utils.py:782:see_memory_usage] MA 0.94 GB         Max_MA 0.94 GB         CA 0.97 GB         Max_CA 3 GB 
+[2025-08-30 01:22:27,252] [INFO] [utils.py:789:see_memory_usage] CPU Virtual Memory:  used = 39.23 GB, percent = 1.4%
+[2025-08-30 01:22:27,356] [INFO] [utils.py:781:see_memory_usage] Before creating fp32 partitions
+[2025-08-30 01:22:27,356] [INFO] [utils.py:782:see_memory_usage] MA 0.94 GB         Max_MA 0.94 GB         CA 0.97 GB         Max_CA 1 GB 
+[2025-08-30 01:22:27,357] [INFO] [utils.py:789:see_memory_usage] CPU Virtual Memory:  used = 39.23 GB, percent = 1.4%
+[2025-08-30 01:22:27,449] [INFO] [utils.py:781:see_memory_usage] After creating fp32 partitions
+[2025-08-30 01:22:27,450] [INFO] [utils.py:782:see_memory_usage] MA 0.94 GB         Max_MA 0.94 GB         CA 0.97 GB         Max_CA 1 GB 
+[2025-08-30 01:22:27,450] [INFO] [utils.py:789:see_memory_usage] CPU Virtual Memory:  used = 39.23 GB, percent = 1.4%
+[2025-08-30 01:22:27,534] [INFO] [utils.py:781:see_memory_usage] Before initializing optimizer states
+[2025-08-30 01:22:27,534] [INFO] [utils.py:782:see_memory_usage] MA 0.94 GB         Max_MA 0.94 GB         CA 0.97 GB         Max_CA 1 GB 
+[2025-08-30 01:22:27,534] [INFO] [utils.py:789:see_memory_usage] CPU Virtual Memory:  used = 39.23 GB, percent = 1.4%
+[2025-08-30 01:22:27,620] [INFO] [utils.py:781:see_memory_usage] After initializing optimizer states
+[2025-08-30 01:22:27,621] [INFO] [utils.py:782:see_memory_usage] MA 0.94 GB         Max_MA 0.94 GB         CA 0.97 GB         Max_CA 1 GB 
+[2025-08-30 01:22:27,621] [INFO] [utils.py:789:see_memory_usage] CPU Virtual Memory:  used = 39.23 GB, percent = 1.4%
+[2025-08-30 01:22:27,621] [INFO] [stage3.py:521:_setup_for_real_optimizer] optimizer state initialized
+[2025-08-30 01:22:27,768] [WARNING] [lr_schedules.py:855:get_lr] Attempting to get learning rate from scheduler before it has started
+[2025-08-30 01:22:27,768] [WARNING] [lr_schedules.py:855:get_lr] Attempting to get learning rate from scheduler before it has started
+[2025-08-30 01:22:27,776] [WARNING] [lr_schedules.py:855:get_lr] Attempting to get learning rate from scheduler before it has started
+[2025-08-30 01:22:27,780] [WARNING] [lr_schedules.py:855:get_lr] Attempting to get learning rate from scheduler before it has started
+[2025-08-30 01:22:27,780] [WARNING] [lr_schedules.py:855:get_lr] Attempting to get learning rate from scheduler before it has started
+[2025-08-30 01:22:27,782] [WARNING] [lr_schedules.py:855:get_lr] Attempting to get learning rate from scheduler before it has started
+[2025-08-30 01:22:27,782] [WARNING] [lr_schedules.py:855:get_lr] Attempting to get learning rate from scheduler before it has started
+[2025-08-30 01:22:27,860] [INFO] [utils.py:781:see_memory_usage] After initializing ZeRO optimizer
+[2025-08-30 01:22:27,861] [INFO] [utils.py:782:see_memory_usage] MA 6.52 GB         Max_MA 6.52 GB         CA 6.56 GB         Max_CA 7 GB 
+[2025-08-30 01:22:27,861] [INFO] [utils.py:789:see_memory_usage] CPU Virtual Memory:  used = 39.32 GB, percent = 1.4%
+[2025-08-30 01:22:27,861] [INFO] [logging.py:128:log_dist] [Rank 0] DeepSpeed Final Optimizer = DeepSpeedZeroOptimizer_Stage3
+[2025-08-30 01:22:27,861] [WARNING] [lr_schedules.py:855:get_lr] Attempting to get learning rate from scheduler before it has started
+[2025-08-30 01:22:27,861] [INFO] [logging.py:128:log_dist] [Rank 0] DeepSpeed using configured LR scheduler = WarmupCosineLR
+[2025-08-30 01:22:27,861] [INFO] [logging.py:128:log_dist] [Rank 0] DeepSpeed LR Scheduler = <deepspeed.runtime.lr_schedules.WarmupCosineLR object at 0x7cf1c819f610>
+[2025-08-30 01:22:27,861] [INFO] [logging.py:128:log_dist] [Rank 0] step=0, skipped=0, lr=[0.0], mom=[[0.9, 0.999]]
+[2025-08-30 01:22:27,862] [INFO] [config.py:999:print] DeepSpeedEngine configuration:
+[2025-08-30 01:22:27,862] [INFO] [config.py:1003:print]   activation_checkpointing_config  {
+    "partition_activations": true, 
+    "contiguous_memory_optimization": true, 
+    "cpu_checkpointing": false, 
+    "number_checkpoints": 4, 
+    "synchronize_checkpoint_boundary": false, 
+    "profile": false
+}
+[2025-08-30 01:22:27,862] [INFO] [config.py:1003:print]   aio_config ................... {'block_size': 1048576, 'queue_depth': 8, 'thread_count': 1, 'single_submit': False, 'overlap_events': True, 'use_gds': False}
+[2025-08-30 01:22:27,862] [INFO] [config.py:1003:print]   amp_enabled .................. False
+[2025-08-30 01:22:27,862] [INFO] [config.py:1003:print]   amp_params ................... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   autotuning_config ............ {
+    "enabled": false, 
+    "start_step": null, 
+    "end_step": null, 
+    "metric_path": null, 
+    "arg_mappings": null, 
+    "metric": "throughput", 
+    "model_info": null, 
+    "results_dir": "autotuning_results", 
+    "exps_dir": "autotuning_exps", 
+    "overwrite": true, 
+    "fast": true, 
+    "start_profile_step": 3, 
+    "end_profile_step": 5, 
+    "tuner_type": "gridsearch", 
+    "tuner_early_stopping": 5, 
+    "tuner_num_trials": 50, 
+    "model_info_path": null, 
+    "mp_size": 1, 
+    "max_train_batch_size": null, 
+    "min_train_batch_size": 1, 
+    "max_train_micro_batch_size_per_gpu": 1.024000e+03, 
+    "min_train_micro_batch_size_per_gpu": 1, 
+    "num_tuning_micro_batch_sizes": 3
+}
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   bfloat16_enabled ............. True
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   bfloat16_immediate_grad_update  False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   checkpoint_parallel_write_pipeline  False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   checkpoint_tag_validation_enabled  True
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   checkpoint_tag_validation_fail  False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   comms_config ................. <deepspeed.comm.config.DeepSpeedCommsConfig object at 0x7cf21d57ef50>
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   communication_data_type ...... None
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   compression_config ........... {'weight_quantization': {'shared_parameters': {'enabled': False, 'quantizer_kernel': False, 'schedule_offset': 0, 'quantize_groups': 1, 'quantize_verbose': False, 'quantization_type': 'symmetric', 'quantize_weight_in_forward': False, 'rounding': 'nearest', 'fp16_mixed_quantize': False, 'quantize_change_ratio': 0.001}, 'different_groups': {}}, 'activation_quantization': {'shared_parameters': {'enabled': False, 'quantization_type': 'symmetric', 'range_calibration': 'dynamic', 'schedule_offset': 1000}, 'different_groups': {}}, 'sparse_pruning': {'shared_parameters': {'enabled': False, 'method': 'l1', 'schedule_offset': 1000}, 'different_groups': {}}, 'row_pruning': {'shared_parameters': {'enabled': False, 'method': 'l1', 'schedule_offset': 1000}, 'different_groups': {}}, 'head_pruning': {'shared_parameters': {'enabled': False, 'method': 'topk', 'schedule_offset': 1000}, 'different_groups': {}}, 'channel_pruning': {'shared_parameters': {'enabled': False, 'method': 'l1', 'schedule_offset': 1000}, 'different_groups': {}}, 'layer_reduction': {'enabled': False}}
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   curriculum_enabled_legacy .... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   curriculum_params_legacy ..... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   data_efficiency_config ....... {'enabled': False, 'seed': 1234, 'data_sampling': {'enabled': False, 'num_epochs': 1000, 'num_workers': 0, 'curriculum_learning': {'enabled': False}}, 'data_routing': {'enabled': False, 'random_ltd': {'enabled': False, 'layer_token_lr_schedule': {'enabled': False}}}}
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   data_efficiency_enabled ...... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   dataloader_drop_last ......... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   disable_allgather ............ False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   dump_state ................... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   dynamic_loss_scale_args ...... None
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   eigenvalue_enabled ........... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   eigenvalue_gas_boundary_resolution  1
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   eigenvalue_layer_name ........ bert.encoder.layer
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   eigenvalue_layer_num ......... 0
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   eigenvalue_max_iter .......... 100
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   eigenvalue_stability ......... 1e-06
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   eigenvalue_tol ............... 0.01
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   eigenvalue_verbose ........... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   elasticity_enabled ........... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   flops_profiler_config ........ {
+    "enabled": false, 
+    "recompute_fwd_factor": 0.0, 
+    "profile_step": 1, 
+    "module_depth": -1, 
+    "top_modules": 1, 
+    "detailed": true, 
+    "output_file": null
+}
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   fp16_auto_cast ............... None
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   fp16_enabled ................. False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   fp16_master_weights_and_gradients  False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   global_rank .................. 0
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   grad_accum_dtype ............. None
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   gradient_accumulation_steps .. 4
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   gradient_clipping ............ 0.3
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   gradient_predivide_factor .... 1.0
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   graph_harvesting ............. False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   hybrid_engine ................ enabled=False max_out_tokens=512 inference_tp_size=1 release_inference_cache=False pin_parameters=True tp_gather_partition_size=8
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   initial_dynamic_scale ........ 1
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   load_universal_checkpoint .... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   loss_scale ................... 1.0
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   memory_breakdown ............. False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   mics_hierarchial_params_gather  False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   mics_shard_size .............. -1
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   monitor_config ............... tensorboard=TensorBoardConfig(enabled=False, output_path='', job_name='DeepSpeedJobName') comet=CometConfig(enabled=False, samples_log_interval=100, project=None, workspace=None, api_key=None, experiment_name=None, experiment_key=None, online=None, mode=None) wandb=WandbConfig(enabled=False, group=None, team=None, project='deepspeed') csv_monitor=CSVConfig(enabled=False, output_path='', job_name='DeepSpeedJobName')
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   nebula_config ................ {
+    "enabled": false, 
+    "persistent_storage_path": null, 
+    "persistent_time_interval": 100, 
+    "num_of_version_in_retention": 2, 
+    "enable_nebula_load": true, 
+    "load_path": null
+}
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   optimizer_legacy_fusion ...... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   optimizer_name ............... adam
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   optimizer_params ............. {'lr': 0.0004, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0001}
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   pipeline ..................... {'stages': 'auto', 'partition': 'best', 'seed_layers': False, 'activation_checkpoint_interval': 0, 'pipe_partitioned': True, 'grad_partitioned': True}
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   pld_enabled .................. False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   pld_params ................... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   prescale_gradients ........... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   scheduler_name ............... WarmupCosineLR
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   scheduler_params ............. {'total_num_steps': 1024, 'warmup_min_ratio': 0.03, 'warmup_num_steps': 400}
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   seq_parallel_communication_data_type  torch.float32
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   sparse_attention ............. None
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   sparse_gradients_enabled ..... False
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   steps_per_print .............. inf
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   timers_config ................ enabled=True synchronized=True
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   train_batch_size ............. 128
+[2025-08-30 01:22:27,863] [INFO] [config.py:1003:print]   train_micro_batch_size_per_gpu  2
+[2025-08-30 01:22:27,864] [INFO] [config.py:1003:print]   use_data_before_expert_parallel_  False
+[2025-08-30 01:22:27,864] [INFO] [config.py:1003:print]   use_node_local_storage ....... False
+[2025-08-30 01:22:27,864] [INFO] [config.py:1003:print]   wall_clock_breakdown ......... False
+[2025-08-30 01:22:27,864] [INFO] [config.py:1003:print]   weight_quantization_config ... None
+[2025-08-30 01:22:27,864] [INFO] [config.py:1003:print]   world_size ................... 16
+[2025-08-30 01:22:27,864] [INFO] [config.py:1003:print]   zero_allow_untested_optimizer  False
+[2025-08-30 01:22:27,864] [INFO] [config.py:1003:print]   zero_config .................. stage=3 contiguous_gradients=True reduce_scatter=True reduce_bucket_size=3000000000 use_multi_rank_bucket_allreduce=True allgather_partitions=True allgather_bucket_size=500000000 overlap_comm=True load_from_fp32_weights=True elastic_checkpoint=False offload_param=DeepSpeedZeroOffloadParamConfig(device='none', nvme_path=None, buffer_count=5, buffer_size=100000000, max_in_cpu=1000000000, pin_memory=False) offload_optimizer=DeepSpeedZeroOffloadOptimizerConfig(device='none', nvme_path=None, buffer_count=4, pin_memory=False, pipeline_read=False, pipeline_write=False, fast_init=False, ratio=1.0) sub_group_size=1000000000 cpu_offload_param=None cpu_offload_use_pin_memory=None cpu_offload=None prefetch_bucket_size=3000000000 param_persistence_threshold=1000000 model_persistence_threshold=9223372036854775807 max_live_parameters=1500000000 max_reuse_distance=1000000000 gather_16bit_weights_on_model_save=True use_all_reduce_for_fetch_params=False stage3_gather_fp16_weights_on_model_save=False ignore_unused_parameters=True legacy_stage1=False round_robin_gradients=True zero_hpz_partition_size=1 zero_quantized_weights=False zero_quantized_nontrainable_weights=False zero_quantized_gradients=False mics_shard_size=-1 mics_hierarchical_params_gather=False memory_efficient_linear=False pipeline_loading_checkpoint=False override_module_apply=True
+[2025-08-30 01:22:27,864] [INFO] [config.py:1003:print]   zero_enabled ................. True
+[2025-08-30 01:22:27,864] [INFO] [config.py:1003:print]   zero_force_ds_cpu_optimizer .. True
+[2025-08-30 01:22:27,864] [INFO] [config.py:1003:print]   zero_optimization_stage ...... 3
+[2025-08-30 01:22:27,864] [INFO] [config.py:989:print_user_config]   json = {
+    "fp16": {
+        "enabled": false
+    }, 
+    "bf16": {
+        "enabled": true
+    }, 
+    "optimizer": {
+        "type": "Adam", 
+        "params": {
+            "lr": 0.0004, 
+            "betas": [0.9, 0.999], 
+            "eps": 1e-08, 
+            "weight_decay": 0.0001
+        }
+    }, 
+    "scheduler": {
+        "type": "WarmupCosineLR", 
+        "params": {
+            "total_num_steps": 1.024000e+03, 
+            "warmup_min_ratio": 0.03, 
+            "warmup_num_steps": 400
+        }
+    }, 
+    "zero_optimization": {
+        "stage": 3, 
+        "offload_optimizer": {
+            "device": "none"
+        }, 
+        "offload_param": {
+            "device": "none"
+        }, 
+        "overlap_comm": true, 
+        "contiguous_gradients": true, 
+        "sub_group_size": 1.000000e+09, 
+        "reduce_bucket_size": 3.000000e+09, 
+        "stage3_prefetch_bucket_size": 3.000000e+09, 
+        "stage3_param_persistence_threshold": 1.000000e+06, 
+        "stage3_max_live_parameters": 1.500000e+09, 
+        "stage3_max_reuse_distance": 1.000000e+09, 
+        "stage3_gather_16bit_weights_on_model_save": true, 
+        "memory_efficient_linear": false, 
+        "round_robin_gradients": true
+    }, 
+    "gradient_accumulation_steps": 4, 
+    "gradient_clipping": 0.3, 
+    "steps_per_print": inf, 
+    "train_batch_size": 128, 
+    "train_micro_batch_size_per_gpu": 2, 
+    "wall_clock_breakdown": false, 
+    "activation_checkpointing": {
+        "partition_activations": true, 
+        "contiguous_memory_optimization": true, 
+        "number_checkpoints": 4
+    }
+}
+[INFO|trainer.py:2414] 2025-08-30 01:22:27,865 >> ***** Running training *****
+[INFO|trainer.py:2415] 2025-08-30 01:22:27,865 >>   Num examples = 3,901
+[INFO|trainer.py:2416] 2025-08-30 01:22:27,865 >>   Num Epochs = 35
+[INFO|trainer.py:2417] 2025-08-30 01:22:27,865 >>   Instantaneous batch size per device = 2
+[INFO|trainer.py:2420] 2025-08-30 01:22:27,865 >>   Total train batch size (w. parallel, distributed & accumulation) = 128
+[INFO|trainer.py:2421] 2025-08-30 01:22:27,865 >>   Gradient Accumulation steps = 4
+[INFO|trainer.py:2422] 2025-08-30 01:22:27,865 >>   Total optimization steps = 1,024
+[INFO|trainer.py:2423] 2025-08-30 01:22:27,866 >>   Number of trainable parameters = 2,097,152
+[WARNING|logging.py:328] 2025-08-30 01:22:27,867 >> `use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`.
+[WARNING|logging.py:328] 2025-08-30 01:22:27,868 >> `use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`.
+[WARNING|logging.py:328] 2025-08-30 01:22:27,868 >> `use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`.
+[WARNING|logging.py:328] 2025-08-30 01:22:27,868 >> `use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`.
+[WARNING|logging.py:328] 2025-08-30 01:22:27,869 >> `use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`.
+[WARNING|logging.py:328] 2025-08-30 01:22:27,870 >> `use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`.
+[WARNING|logging.py:328] 2025-08-30 01:22:27,871 >> `use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`.
+  0%|          | 0/1024 [00:00<?, ?it/s][WARNING|logging.py:328] 2025-08-30 01:22:28,061 >> `use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`.
+[rank5]: Traceback (most recent call last):
+[rank5]:   File "/app/run_clm_sft_mlflow.py", line 926, in <module>
+[rank5]:     main()
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+[rank5]:     return f(*args, **kwargs)
+[rank5]:            ^^^^^^^^^^^^^^^^^^
+[rank5]:   File "/app/run_clm_sft_mlflow.py", line 873, in main
+[rank5]:     train_result = trainer.train(resume_from_checkpoint=checkpoint)
+[rank5]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2245, in train
+[rank5]:     return inner_training_loop(
+[rank5]:            ^^^^^^^^^^^^^^^^^^^^
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2560, in _inner_training_loop
+[rank5]:     tr_loss_step = self.training_step(model, inputs, num_items_in_batch)
+[rank5]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 3782, in training_step
+[rank5]:     self.accelerator.backward(loss, **kwargs)
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/accelerate/accelerator.py", line 2726, in backward
+[rank5]:     self.deepspeed_engine_wrapped.backward(loss, sync_gradients=self.sync_gradients, **kwargs)
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/accelerate/utils/deepspeed.py", line 270, in backward
+[rank5]:     self.engine.backward(loss, **kwargs)
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank5]:     ret_val = func(*args, **kwargs)
+[rank5]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/engine.py", line 2020, in backward
+[rank5]:     self.optimizer.backward(loss, retain_graph=retain_graph)
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank5]:     ret_val = func(*args, **kwargs)
+[rank5]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/zero/stage3.py", line 2259, in backward
+[rank5]:     self.loss_scaler.backward(loss.float(), retain_graph=retain_graph)
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/fp16/loss_scaler.py", line 63, in backward
+[rank5]:     scaled_loss.backward(retain_graph=retain_graph)
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/torch/_tensor.py", line 626, in backward
+[rank5]:     torch.autograd.backward(
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/__init__.py", line 347, in backward
+[rank5]:     _engine_run_backward(
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/graph.py", line 823, in _engine_run_backward
+[rank5]:     return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[rank5]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 1129, in unpack_hook
+[rank5]:     frame.check_recomputed_tensors_match(gid)
+[rank5]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 903, in check_recomputed_tensors_match
+[rank5]:     raise CheckpointError(
+[rank5]: torch.utils.checkpoint.CheckpointError: torch.utils.checkpoint: Recomputed values for the following tensors have different metadata than during the forward pass.
+[rank5]: tensor at position 4:
+[rank5]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=5)}
+[rank5]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=5)}
+[rank5]: tensor at position 28:
+[rank5]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=5)}
+[rank5]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=5)}
+
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/app/run_clm_sft_mlflow.py", line 926, in <module>
+[rank0]:     main()
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+[rank0]:     return f(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/app/run_clm_sft_mlflow.py", line 873, in main
+[rank0]:     train_result = trainer.train(resume_from_checkpoint=checkpoint)
+[rank0]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2245, in train
+[rank0]:     return inner_training_loop(
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2560, in _inner_training_loop
+[rank0]:     tr_loss_step = self.training_step(model, inputs, num_items_in_batch)
+[rank0]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 3782, in training_step
+[rank0]:     self.accelerator.backward(loss, **kwargs)
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/accelerate/accelerator.py", line 2726, in backward
+[rank0]:     self.deepspeed_engine_wrapped.backward(loss, sync_gradients=self.sync_gradients, **kwargs)
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/accelerate/utils/deepspeed.py", line 270, in backward
+[rank0]:     self.engine.backward(loss, **kwargs)
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank0]:     ret_val = func(*args, **kwargs)
+[rank0]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/engine.py", line 2020, in backward
+[rank0]:     self.optimizer.backward(loss, retain_graph=retain_graph)
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank0]:     ret_val = func(*args, **kwargs)
+[rank0]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/zero/stage3.py", line 2259, in backward
+[rank0]:     self.loss_scaler.backward(loss.float(), retain_graph=retain_graph)
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/fp16/loss_scaler.py", line 63, in backward
+[rank0]:     scaled_loss.backward(retain_graph=retain_graph)
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/torch/_tensor.py", line 626, in backward
+[rank0]:     torch.autograd.backward(
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/__init__.py", line 347, in backward
+[rank0]:     _engine_run_backward(
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/graph.py", line 823, in _engine_run_backward
+[rank0]:     return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 1129, in unpack_hook
+[rank0]:     frame.check_recomputed_tensors_match(gid)
+[rank0]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 903, in check_recomputed_tensors_match
+[rank0]:     raise CheckpointError(
+[rank0]: torch.utils.checkpoint.CheckpointError: torch.utils.checkpoint: Recomputed values for the following tensors have different metadata than during the forward pass.
+[rank0]: tensor at position 4:
+[rank0]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=0)}
+[rank0]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=0)}
+[rank0]: tensor at position 28:
+[rank0]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=0)}
+[rank0]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=0)}
+
+[rank7]: Traceback (most recent call last):
+[rank7]:   File "/app/run_clm_sft_mlflow.py", line 926, in <module>
+[rank7]:     main()
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+[rank7]:     return f(*args, **kwargs)
+[rank7]:            ^^^^^^^^^^^^^^^^^^
+[rank7]:   File "/app/run_clm_sft_mlflow.py", line 873, in main
+[rank7]:     train_result = trainer.train(resume_from_checkpoint=checkpoint)
+[rank7]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2245, in train
+[rank7]:     return inner_training_loop(
+[rank7]:            ^^^^^^^^^^^^^^^^^^^^
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2560, in _inner_training_loop
+[rank7]:     tr_loss_step = self.training_step(model, inputs, num_items_in_batch)
+[rank7]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 3782, in training_step
+[rank7]:     self.accelerator.backward(loss, **kwargs)
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/accelerate/accelerator.py", line 2726, in backward
+[rank7]:     self.deepspeed_engine_wrapped.backward(loss, sync_gradients=self.sync_gradients, **kwargs)
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/accelerate/utils/deepspeed.py", line 270, in backward
+[rank7]:     self.engine.backward(loss, **kwargs)
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank7]:     ret_val = func(*args, **kwargs)
+[rank7]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/engine.py", line 2020, in backward
+[rank7]:     self.optimizer.backward(loss, retain_graph=retain_graph)
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank7]:     ret_val = func(*args, **kwargs)
+[rank7]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/zero/stage3.py", line 2259, in backward
+[rank7]:     self.loss_scaler.backward(loss.float(), retain_graph=retain_graph)
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/fp16/loss_scaler.py", line 63, in backward
+[rank7]:     scaled_loss.backward(retain_graph=retain_graph)
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/torch/_tensor.py", line 626, in backward
+[rank7]:     torch.autograd.backward(
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/__init__.py", line 347, in backward
+[rank7]:     _engine_run_backward(
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/graph.py", line 823, in _engine_run_backward
+[rank7]:     return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[rank7]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 1129, in unpack_hook
+[rank7]:     frame.check_recomputed_tensors_match(gid)
+[rank7]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 903, in check_recomputed_tensors_match
+[rank7]:     raise CheckpointError(
+[rank7]: torch.utils.checkpoint.CheckpointError: torch.utils.checkpoint: Recomputed values for the following tensors have different metadata than during the forward pass.
+[rank7]: tensor at position 4:
+[rank7]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=7)}
+[rank7]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=7)}
+[rank7]: tensor at position 28:
+[rank7]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=7)}
+[rank7]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=7)}
+
+[rank1]: Traceback (most recent call last):
+[rank1]:   File "/app/run_clm_sft_mlflow.py", line 926, in <module>
+[rank1]:     main()
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+[rank1]:     return f(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/app/run_clm_sft_mlflow.py", line 873, in main
+[rank1]:     train_result = trainer.train(resume_from_checkpoint=checkpoint)
+[rank1]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2245, in train
+[rank1]:     return inner_training_loop(
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2560, in _inner_training_loop
+[rank1]:     tr_loss_step = self.training_step(model, inputs, num_items_in_batch)
+[rank1]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 3782, in training_step
+[rank1]:     self.accelerator.backward(loss, **kwargs)
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/accelerate/accelerator.py", line 2726, in backward
+[rank1]:     self.deepspeed_engine_wrapped.backward(loss, sync_gradients=self.sync_gradients, **kwargs)
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/accelerate/utils/deepspeed.py", line 270, in backward
+[rank1]:     self.engine.backward(loss, **kwargs)
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank1]:     ret_val = func(*args, **kwargs)
+[rank1]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/engine.py", line 2020, in backward
+[rank1]:     self.optimizer.backward(loss, retain_graph=retain_graph)
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank1]:     ret_val = func(*args, **kwargs)
+[rank1]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/zero/stage3.py", line 2259, in backward
+[rank1]:     self.loss_scaler.backward(loss.float(), retain_graph=retain_graph)
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/fp16/loss_scaler.py", line 63, in backward
+[rank1]:     scaled_loss.backward(retain_graph=retain_graph)
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/torch/_tensor.py", line 626, in backward
+[rank1]:     torch.autograd.backward(
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/__init__.py", line 347, in backward
+[rank1]:     _engine_run_backward(
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/graph.py", line 823, in _engine_run_backward
+[rank1]:     return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 1129, in unpack_hook
+[rank1]:     frame.check_recomputed_tensors_match(gid)
+[rank1]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 903, in check_recomputed_tensors_match
+[rank1]:     raise CheckpointError(
+[rank1]: torch.utils.checkpoint.CheckpointError: torch.utils.checkpoint: Recomputed values for the following tensors have different metadata than during the forward pass.
+[rank1]: tensor at position 4:
+[rank1]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=1)}
+[rank1]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=1)}
+[rank1]: tensor at position 28:
+[rank1]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=1)}
+[rank1]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=1)}
+
+[rank3]: Traceback (most recent call last):
+[rank3]:   File "/app/run_clm_sft_mlflow.py", line 926, in <module>
+[rank3]:     main()
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+[rank3]:     return f(*args, **kwargs)
+[rank3]:            ^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/app/run_clm_sft_mlflow.py", line 873, in main
+[rank3]:     train_result = trainer.train(resume_from_checkpoint=checkpoint)
+[rank3]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2245, in train
+[rank3]:     return inner_training_loop(
+[rank3]:            ^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2560, in _inner_training_loop
+[rank3]:     tr_loss_step = self.training_step(model, inputs, num_items_in_batch)
+[rank3]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 3782, in training_step
+[rank3]:     self.accelerator.backward(loss, **kwargs)
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/accelerate/accelerator.py", line 2726, in backward
+[rank3]:     self.deepspeed_engine_wrapped.backward(loss, sync_gradients=self.sync_gradients, **kwargs)
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/accelerate/utils/deepspeed.py", line 270, in backward
+[rank3]:     self.engine.backward(loss, **kwargs)
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank3]:     ret_val = func(*args, **kwargs)
+[rank3]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/engine.py", line 2020, in backward
+[rank3]:     self.optimizer.backward(loss, retain_graph=retain_graph)
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank3]:     ret_val = func(*args, **kwargs)
+[rank3]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/zero/stage3.py", line 2259, in backward
+[rank3]:     self.loss_scaler.backward(loss.float(), retain_graph=retain_graph)
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/fp16/loss_scaler.py", line 63, in backward
+[rank3]:     scaled_loss.backward(retain_graph=retain_graph)
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/torch/_tensor.py", line 626, in backward
+[rank3]:     torch.autograd.backward(
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/__init__.py", line 347, in backward
+[rank3]:     _engine_run_backward(
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/graph.py", line 823, in _engine_run_backward
+[rank3]:     return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[rank3]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 1129, in unpack_hook
+[rank3]:     frame.check_recomputed_tensors_match(gid)
+[rank3]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 903, in check_recomputed_tensors_match
+[rank3]:     raise CheckpointError(
+[rank3]: torch.utils.checkpoint.CheckpointError: torch.utils.checkpoint: Recomputed values for the following tensors have different metadata than during the forward pass.
+[rank3]: tensor at position 4:
+[rank3]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=3)}
+[rank3]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=3)}
+[rank3]: tensor at position 28:
+[rank3]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=3)}
+[rank3]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=3)}
+
+[rank2]: Traceback (most recent call last):
+[rank2]:   File "/app/run_clm_sft_mlflow.py", line 926, in <module>
+[rank2]:     main()
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+[rank2]:     return f(*args, **kwargs)
+[rank2]:            ^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/app/run_clm_sft_mlflow.py", line 873, in main
+[rank2]:     train_result = trainer.train(resume_from_checkpoint=checkpoint)
+[rank2]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2245, in train
+[rank2]:     return inner_training_loop(
+[rank2]:            ^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2560, in _inner_training_loop
+[rank2]:     tr_loss_step = self.training_step(model, inputs, num_items_in_batch)
+[rank2]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 3782, in training_step
+[rank2]:     self.accelerator.backward(loss, **kwargs)
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/accelerate/accelerator.py", line 2726, in backward
+[rank2]:     self.deepspeed_engine_wrapped.backward(loss, sync_gradients=self.sync_gradients, **kwargs)
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/accelerate/utils/deepspeed.py", line 270, in backward
+[rank2]:     self.engine.backward(loss, **kwargs)
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank2]:     ret_val = func(*args, **kwargs)
+[rank2]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/engine.py", line 2020, in backward
+[rank2]:     self.optimizer.backward(loss, retain_graph=retain_graph)
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank2]:     ret_val = func(*args, **kwargs)
+[rank2]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/zero/stage3.py", line 2259, in backward
+[rank2]:     self.loss_scaler.backward(loss.float(), retain_graph=retain_graph)
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/fp16/loss_scaler.py", line 63, in backward
+[rank2]:     scaled_loss.backward(retain_graph=retain_graph)
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/torch/_tensor.py", line 626, in backward
+[rank2]:     torch.autograd.backward(
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/__init__.py", line 347, in backward
+[rank2]:     _engine_run_backward(
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/graph.py", line 823, in _engine_run_backward
+[rank2]:     return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[rank2]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 1129, in unpack_hook
+[rank2]:     frame.check_recomputed_tensors_match(gid)
+[rank2]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 903, in check_recomputed_tensors_match
+[rank2]:     raise CheckpointError(
+[rank2]: torch.utils.checkpoint.CheckpointError: torch.utils.checkpoint: Recomputed values for the following tensors have different metadata than during the forward pass.
+[rank2]: tensor at position 4:
+[rank2]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=2)}
+[rank2]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=2)}
+[rank2]: tensor at position 28:
+[rank2]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=2)}
+[rank2]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=2)}
+
+[rank4]: Traceback (most recent call last):
+[rank4]:   File "/app/run_clm_sft_mlflow.py", line 926, in <module>
+[rank4]:     main()
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+[rank4]:     return f(*args, **kwargs)
+[rank4]:            ^^^^^^^^^^^^^^^^^^
+[rank4]:   File "/app/run_clm_sft_mlflow.py", line 873, in main
+[rank4]:     train_result = trainer.train(resume_from_checkpoint=checkpoint)
+[rank4]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2245, in train
+[rank4]:     return inner_training_loop(
+[rank4]:            ^^^^^^^^^^^^^^^^^^^^
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2560, in _inner_training_loop
+[rank4]:     tr_loss_step = self.training_step(model, inputs, num_items_in_batch)
+[rank4]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 3782, in training_step
+[rank4]:     self.accelerator.backward(loss, **kwargs)
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/accelerate/accelerator.py", line 2726, in backward
+[rank4]:     self.deepspeed_engine_wrapped.backward(loss, sync_gradients=self.sync_gradients, **kwargs)
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/accelerate/utils/deepspeed.py", line 270, in backward
+[rank4]:     self.engine.backward(loss, **kwargs)
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank4]:     ret_val = func(*args, **kwargs)
+[rank4]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/engine.py", line 2020, in backward
+[rank4]:     self.optimizer.backward(loss, retain_graph=retain_graph)
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank4]:     ret_val = func(*args, **kwargs)
+[rank4]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/zero/stage3.py", line 2259, in backward
+[rank4]:     self.loss_scaler.backward(loss.float(), retain_graph=retain_graph)
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/fp16/loss_scaler.py", line 63, in backward
+[rank4]:     scaled_loss.backward(retain_graph=retain_graph)
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/torch/_tensor.py", line 626, in backward
+[rank4]:     torch.autograd.backward(
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/__init__.py", line 347, in backward
+[rank4]:     _engine_run_backward(
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/graph.py", line 823, in _engine_run_backward
+[rank4]:     return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[rank4]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 1129, in unpack_hook
+[rank4]:     frame.check_recomputed_tensors_match(gid)
+[rank4]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 903, in check_recomputed_tensors_match
+[rank4]:     raise CheckpointError(
+[rank4]: torch.utils.checkpoint.CheckpointError: torch.utils.checkpoint: Recomputed values for the following tensors have different metadata than during the forward pass.
+[rank4]: tensor at position 4:
+[rank4]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=4)}
+[rank4]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=4)}
+[rank4]: tensor at position 28:
+[rank4]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=4)}
+[rank4]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=4)}
+
+[rank6]: Traceback (most recent call last):
+[rank6]:   File "/app/run_clm_sft_mlflow.py", line 926, in <module>
+[rank6]:     main()
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+[rank6]:     return f(*args, **kwargs)
+[rank6]:            ^^^^^^^^^^^^^^^^^^
+[rank6]:   File "/app/run_clm_sft_mlflow.py", line 873, in main
+[rank6]:     train_result = trainer.train(resume_from_checkpoint=checkpoint)
+[rank6]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2245, in train
+[rank6]:     return inner_training_loop(
+[rank6]:            ^^^^^^^^^^^^^^^^^^^^
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 2560, in _inner_training_loop
+[rank6]:     tr_loss_step = self.training_step(model, inputs, num_items_in_batch)
+[rank6]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/transformers/trainer.py", line 3782, in training_step
+[rank6]:     self.accelerator.backward(loss, **kwargs)
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/accelerate/accelerator.py", line 2726, in backward
+[rank6]:     self.deepspeed_engine_wrapped.backward(loss, sync_gradients=self.sync_gradients, **kwargs)
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/accelerate/utils/deepspeed.py", line 270, in backward
+[rank6]:     self.engine.backward(loss, **kwargs)
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank6]:     ret_val = func(*args, **kwargs)
+[rank6]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/engine.py", line 2020, in backward
+[rank6]:     self.optimizer.backward(loss, retain_graph=retain_graph)
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/utils/nvtx.py", line 18, in wrapped_fn
+[rank6]:     ret_val = func(*args, **kwargs)
+[rank6]:               ^^^^^^^^^^^^^^^^^^^^^
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/zero/stage3.py", line 2259, in backward
+[rank6]:     self.loss_scaler.backward(loss.float(), retain_graph=retain_graph)
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/deepspeed/runtime/fp16/loss_scaler.py", line 63, in backward
+[rank6]:     scaled_loss.backward(retain_graph=retain_graph)
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/torch/_tensor.py", line 626, in backward
+[rank6]:     torch.autograd.backward(
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/__init__.py", line 347, in backward
+[rank6]:     _engine_run_backward(
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/torch/autograd/graph.py", line 823, in _engine_run_backward
+[rank6]:     return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[rank6]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 1129, in unpack_hook
+[rank6]:     frame.check_recomputed_tensors_match(gid)
+[rank6]:   File "/usr/local/lib/python3.11/site-packages/torch/utils/checkpoint.py", line 903, in check_recomputed_tensors_match
+[rank6]:     raise CheckpointError(
+[rank6]: torch.utils.checkpoint.CheckpointError: torch.utils.checkpoint: Recomputed values for the following tensors have different metadata than during the forward pass.
+[rank6]: tensor at position 4:
+[rank6]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=6)}
+[rank6]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=6)}
+[rank6]: tensor at position 28:
+[rank6]: saved metadata: {'shape': torch.Size([4096]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=6)}
+[rank6]: recomputed metadata: {'shape': torch.Size([0]), 'dtype': torch.bfloat16, 'device': device(type='cuda', index=6)}
+
+  0%|          | 0/1024 [00:02<?, ?it/s]
+[2025-08-30 01:22:32,583] [INFO] [launch.py:319:sigkill_handler] Killing subprocess 1756
+[2025-08-30 01:22:32,836] [INFO] [launch.py:319:sigkill_handler] Killing subprocess 1757
+[2025-08-30 01:22:32,836] [INFO] [launch.py:319:sigkill_handler] Killing subprocess 1758
+[2025-08-30 01:22:32,837] [INFO] [launch.py:319:sigkill_handler] Killing subprocess 1759
+[2025-08-30 01:22:32,837] [INFO] [launch.py:319:sigkill_handler] Killing subprocess 1760
+[2025-08-30 01:22:32,838] [INFO] [launch.py:319:sigkill_handler] Killing subprocess 1761
+[2025-08-30 01:22:32,838] [INFO] [launch.py:319:sigkill_handler] Killing subprocess 1762
+[2025-08-30 01:22:32,838] [INFO] [launch.py:319:sigkill_handler] Killing subprocess 1763
+[2025-08-30 01:22:32,839] [ERROR] [launch.py:325:sigkill_handler] ['/usr/local/bin/python3.11', '-u', 'run_clm_sft_mlflow.py', '--local_rank=7', '--report_to', 'mlflow', '--attn_implementation', 'flash_attention_2', '--bf16', '--torch_dtype', 'bfloat16', '--use_auth_token', 'True', '--logging_strategy', 'steps', '--logging_steps', '24', '--save_strategy', 'steps', '--save_steps', '800', '--save_total_limit', '10', '--num_train_epochs', '1', '--learning_rate', '4e-4', '--warmup_steps', '400', '--model_name_or_path', '/mount/base-model', '--max_source_length', '2048', '--max_target_length', '1024', '--do_train', '--train_file', '/mount/data/train-00000-of-00001.parquet', '--validation_file', '/mount/data/validation-00000-of-00001.parquet', '--text_column', 'hinted_prompt', '--summary_column', 'response', '--output_dir', '/mount/local-checkpoints', '--overwrite_output_dir', '--per_device_train_batch_size', '2', '--gradient_accumulation_steps', '4', '--eval_strategy', 'no', '--per_device_eval_batch_size', '1', '--ddp_backend', 'nccl', '--ddp_timeout', '36000', '--preprocessing_num_workers', '16', '--weight_decay', '0.0001', '--warmup_ratio', '0', '--max_grad_norm', '0.3', '--max_steps', '1024', '--logging_steps', '24', '--eval_steps', '48', '--gradient_checkpointing', 'True', '--deepspeed', '/app/ds_config.json'] exits with return code = 1

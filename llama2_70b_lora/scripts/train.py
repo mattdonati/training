@@ -132,6 +132,9 @@ class ScriptArguments:
     dataset_config_name: Optional[str] = field(default="gov_report")
     hub_model_id: Optional[str] = field(default=None)
     seed: Optional[int] = field(default=42)
+    deepspeed: Optional[str] = field(default=None)
+
+
 
 
 def main(args):
@@ -151,7 +154,7 @@ def main(args):
         warmup_ratio=args.warmup_ratio,
         lr_scheduler_type=args.lr_scheduler_type,
         num_train_epochs=args.num_train_epochs,
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         save_strategy="no",
         max_steps=args.max_steps,
         eval_steps=args.eval_steps,
@@ -163,6 +166,7 @@ def main(args):
         hub_model_id=args.hub_model_id,
         report_to="tensorboard",
         seed=args.seed,
+        deepspeed=args.deepspeed,
     )
 
     model = create_and_prepare_model(args)
