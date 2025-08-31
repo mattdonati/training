@@ -3,12 +3,14 @@
 apiVersion: jobset.x-k8s.io/v1alpha2
 kind: JobSet
 metadata:
-  name: pytorch
+  name: train
   #labels:
   #     kueue.x-k8s.io/queue-name: dws-local-queue
   #annotations:
   #     provreq.kueue.x-k8s.io/maxRunDurationHours: "4"
 spec:
+  network:
+    enableDNSHostnames: true
   replicatedJobs:
   - name: workers
     template:
@@ -21,20 +23,20 @@ spec:
           metadata:
             annotations:
               gke-gcsfuse/volumes: "true"
-              networking.gke.io/default-interface: 'eth0'
+              networking.gke.io/default-interface: "eth0"
               networking.gke.io/interfaces: |
-               [
-                {"interfaceName":"eth0","network":"default"},
-                {"interfaceName":"eth1","network":"gvnic-1"},
-                {"interfaceName":"eth2","network":"rdma-0"},
-                {"interfaceName":"eth3","network":"rdma-1"},
-                {"interfaceName":"eth4","network":"rdma-2"},
-                {"interfaceName":"eth5","network":"rdma-3"},
-                {"interfaceName":"eth6","network":"rdma-4"},
-                {"interfaceName":"eth7","network":"rdma-5"},
-                {"interfaceName":"eth8","network":"rdma-6"},
-                {"interfaceName":"eth9","network":"rdma-7"}
-               ]
+                [
+                  {"interfaceName":"eth0","network":"default"},
+                  {"interfaceName":"eth1","network":"gvnic-1"},
+                  {"interfaceName":"eth2","network":"rdma-0"},
+                  {"interfaceName":"eth3","network":"rdma-1"},
+                  {"interfaceName":"eth4","network":"rdma-2"},
+                  {"interfaceName":"eth5","network":"rdma-3"},
+                  {"interfaceName":"eth6","network":"rdma-4"},
+                  {"interfaceName":"eth7","network":"rdma-5"},
+                  {"interfaceName":"eth8","network":"rdma-6"},
+                  {"interfaceName":"eth9","network":"rdma-7"}
+                ]
           spec:
             #restartPolicy: Never # dws
             #hostNetwork: true
@@ -89,8 +91,8 @@ spec:
               image: us-east1-docker.pkg.dev/gpu-launchpad-playground/gke-llm/mlperf:latest
               imagePullPolicy: Always
               # image: gcr.io/k8s-staging-jobset/pytorch-mnist:latest
-              #ports:
-              #- containerPort: 3389
+              ports:
+               - containerPort: 3389
               env:
               - name: HF_TOKEN
                 valueFrom:
@@ -103,7 +105,16 @@ spec:
                      name: huggingface
                      key: HF_TOKEN
               - name: MASTER_ADDR
-                value: "pytorch-workers-0-0.pytorch"
+                value: "train-workers-0-0.train"
+              - name: hostname_prefix
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.annotations['jobset.sigs.k8s.io/jobset-name']
+              - name: hostname_suffix
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.annotations['jobset.sigs.k8s.io/replicatedjob-name']
+ 
               - name: MASTER_PORT
                 value: "3389"
               - name: NODE_COUNT
@@ -117,6 +128,8 @@ spec:
                 value: "0"
               - name: LD_LIBRARY_PATH
                 value: /usr/local/nvidia/lib64
+              - name: "TORCH_DISTRIBUTED_BACKEND"
+                value: "nccl"
               securityContext:
                 privileged: true
               command:
@@ -124,12 +137,18 @@ spec:
               - -xc
               - |
                 source /usr/local/gib/scripts/set_nccl_env.sh
-                rm scripts/train.py
-                rm scripts/utils.py
-                cp /gcs-dir/scripts/train.py scripts/train.py
-                cp /gcs-dir/scripts/utils.py scripts/utils.py
+                cat <<EOT >~/.deepspeed_env
+                export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+                #export NCCL_DEBUG="INFO"
+                EOT
+               
+                for line in $(env | grep NCCL)
+                do
+                    echo "export $line" >> ~/.deepspeed_env
+                done
+                rm -r -f scripts/train.py
+                cp /gcs-dir/scripts/train.py scripts/train.py 
                 chmod +x scripts/train.py
-                pip install transformers==4.46.0 
                 NUM_GPU_PER_NODE=8
                 TOTAL_PROCESSES=$(($NODE_COUNT * $NUM_GPU_PER_NODE))
                 cat <<EOT >hostfile
@@ -149,9 +168,8 @@ spec:
                 ldconfig -p | grep libcuda | sed 's/^/  /'
                 echo ""
                 #sleep infinity
-                #TORCH_DISTRIBUTED_DEBUG=DETAIL OMP_NUM_THREADS=2 accelerate launch --config_file configs/default_config.yaml  --gpu_ids all --num_machines=$NODE_COUNT   --num_processes=16 --rdzv_backend static --main_process_ip=$MASTER_ADDR --main_process_port=$MASTER_PORT --machine_rank=$NODE_RANK --debug  \
-                TORCH_DISTRIBUTED_DEBUG=DETAIL OMP_NUM_THREADS=8 deepspeed --hostfile=$HOSTFILE --no_ssh --master_addr=$MASTER_ADDR --master_port=$MASTER_PORT --node_rank=$NODE_RANK  \
-                scripts/train.py --dataset_path /gcs-dir/hf-data --model_path /gcs-dir/llama-7b --max_seq_len 8192 --bf16 True --logging_steps 24 --eval_steps 48 --output_dir ./results/llama-70b_scrolls_gov_report_r16_ --per_device_train_batch_size 2 --gradient_accumulation_steps 4 --lr_scheduler_type cosine --learning_rate 4e-4 --weight_decay 0.0001 --warmup_ratio 0 --max_grad_norm 0.3 --use_gradient_checkpointing True --target_eval_loss 0.925 --use_peft_lora True --lora_r 16 --lora_alpha 32 --lora_dropout 0.1 --max_steps 1024 --use_flash_attn --seed 1234 --lora_target_modules qkv_proj,o_proj --deepspeed=configs/deepspeed.json
+                #TORCH_DISTRIBUTED_DEBUG=DETAIL OMP_NUM_THREADS=2 accelerate launch --config_file configs/default_config.yaml  --gpu_ids all --num_machines=$NODE_COUNT --num_processes=16 --rdzv_backend static --main_process_ip=$MASTER_ADDR --main_process_port=$MASTER_PORT --machine_rank=$NODE_RANK --debug  \
+                bash training.sh "\${MASTER_ADDR}" "\${MASTER_PORT}" "\${NODE_RANK}" "\${NODE_COUNT}"
               resources:
                 requests:
                   nvidia.com/gpu: 8

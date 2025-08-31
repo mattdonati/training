@@ -627,7 +627,7 @@ def main():
         logger.warning('>>> enable gradient_checkpointing')
         # https://github.com/huggingface/transformers/pull/27020
         # https://github.com/huggingface/transformers/issues/28335
-        training_args.gradient_checkpointing_kwargs = {"use_reentrant": True}
+        training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
 
     # Another experimental feature is Flash Attention 2 for faster training and
     # memory efficiency, see: https://huggingface.co/docs/transformers/main/en/perf_infer_gpu_one#flash-attention-2

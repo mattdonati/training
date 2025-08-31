@@ -160,6 +160,8 @@ def main(args):
         eval_steps=args.eval_steps,
         eval_delay=int(0.125*gbs+2)*args.eval_steps,
         save_steps=args.save_steps,
+        ddp_backend="nccl",
+        ddp_timeout=3600,
         logging_steps=args.logging_steps,
         push_to_hub=args.push_to_hub,
         gradient_checkpointing=args.use_gradient_checkpointing,

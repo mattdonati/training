@@ -4,6 +4,8 @@ deepspeed_config:
   deepspeed_config_file: configs/deepspeed.json
   deepspeed_multinode_launcher: standard
   zero3_init_flag: false
+  distributed_backend: nccl
+  deepspeed_hostfile: hostfile
 distributed_type: DEEPSPEED
 downcast_bf16: 'no'
 machine_rank: 0
