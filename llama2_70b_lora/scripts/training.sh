@@ -2,21 +2,23 @@
 set -euo pipefail
 
 # --- Configuration ---
-MASTER_ADDR=${1:-"localhost"}
-MASTER_NODE_PORT=${2:-"29500"}
-NODE_RANK=${3:-"0"}
-NUM_NODES=${4:-"1"}
+#MASTER_ADDR=${1:-"localhost"}
+#MASTER_PORT=${2:-"29500"}
+MASTER_ADDR="train-workers-0-0.train"
+MASTER_PORT=3389
+NODE_RANK="$NODE_RANK"
+NUM_NODES="$NODE_COUNT"
 NUM_GPU_PER_NODE=8
-BATCH_SIZE_PER_GPU=2
+BATCH_SIZE_PER_GPU=${6:-"2"}
 #ACCUMULATION_BATCH_SIZE=4
-ACCUMULATION_STEPS=4
+ACCUMULATION_STEPS=${7,-"4"}
 NUM_CPU_CORES=8
 
 # --- Paths ---
 DATA_DIR="/gcs-dir/hf-data"
-MODEL_PATH="/gcs-dir/llama-7b"
+MODEL_PATH=$5  #"/gcs-dir/llama-7b"
 OUTPUT_DIR="./results/llama-70b_scrolls_gov_report_r16_"
-DEEPSPEED_CONFIG="configs/deepspeed.json"
+DEEPSPEED_CONFIG="ds_config.json"
 HOSTFILE="hostfile"
 
 # --- Setup ---
@@ -168,7 +170,7 @@ PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" OMP_NUM_THREADS=$NUM_CPU_CORE
     --use_flash_attn True \
     --seed 1234 \
     --lora_target_modules qkv_proj,o_proj \
-    --deepspeed ds_config.json
+    --deepspeed $DEEPSPEED_CONFIG
 
 echo "Training completed."
 
