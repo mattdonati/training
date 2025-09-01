@@ -290,13 +290,13 @@ def prepare_training_strategy(
     
     #error comment out (rick)
     tp_comm_overlap_cfg = None
-    #if cfg.model.ub_tp_comm_overlap:
-    #    tp_comm_overlap_cfg = OmegaConf.to_container(cfg.model.ub_tp_comm_overlap_cfg)
-    #    TPCommOverlapConfig = make_dataclass(
-    #        "TPCommOverlapConfig",
-    #       [(k, type(v)) for k, v in tp_comm_overlap_cfg.items()],
-    #   )
-    #    tp_comm_overlap_cfg = TPCommOverlapConfig(**tp_comm_overlap_cfg)
+    if cfg.model.ub_tp_comm_overlap:
+        tp_comm_overlap_cfg = OmegaConf.to_container(cfg.model.ub_tp_comm_overlap_cfg)
+        TPCommOverlapConfig = make_dataclass(
+            "TPCommOverlapConfig",
+           [(k, type(v)) for k, v in tp_comm_overlap_cfg.items()],
+        )
+        tp_comm_overlap_cfg = TPCommOverlapConfig(**tp_comm_overlap_cfg)
 
     overlap_callback = MegatronCommOverlapCallback(
         tp_comm_overlap=cfg.model.ub_tp_comm_overlap,

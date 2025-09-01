@@ -5,7 +5,7 @@ DATADIR="/gcs-dir/data/gov_report"  # set your </path/to/dataset>
 MODEL="/gcs-dir/data/model"  # set your </path/to/dataset>
 #LOGDIR="</path/to/output_logdir>"  # set the place where the output logs will be saved
 #export CONT=<docker/registry>/mlperf-nvidia:llama2_70b_lora-pyt
-source config_XE7740lx8H200-NVL-141GB_1x8x2xtp1pp1cp2.sh  # select config and source it
+source config_XE9680lx8H200-SXM-141GB_1x8x2xtp1pp1cp2.sh  # select config and source it
 # --- GKE-specific environment variables ---
 MASTER_ADDR="train-workers-0-0.train"
 MASTER_PORT=3389
