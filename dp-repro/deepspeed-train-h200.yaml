@@ -81,7 +81,7 @@ spec:
                 driver: gcsfuse.csi.storage.gke.io
                 volumeAttributes:
                   bucketName: rick-mlperf
-                  mountOptions: "only-dir=meta-llama--Llama-2-70B-hf,implicit-dirs"
+                  mountOptions: "only-dir=llama-7b,implicit-dirs"
                   fileCacheCapacity: "-1Mi"
                   fileCacheForRangeRead: "true"
                   metadataCacheTTLSeconds: "-1"
@@ -137,16 +137,11 @@ spec:
               args:
               - |
                 set -e
-                rm -r -f /app/traing.sh
-                rm -r -f /app/run_clm_sft_mlflow.py
-                cp /mount/data/training.sh /app/training.sh
-                cp /mount/data/run_clm_sft_mlflow.py /app/run_clm_sft_mlflow.py
-                apt-get update && apt-get install -y python3-pip
-                pip install transformers==4.46.3
+                
                 chmod +x /app/training.sh
                 NUM_GPU_PER_NODE=8
                 echo "Starting training, saving checkpoints to /mnt/local-checkpoints"
-                bash /app/training.sh "\${MASTER_ADDR}" "\${MASTER_PORT}" "\${NODE_RANK}" "\${NODE_COUNT}" "$NUM_GPU_PER_NODE" "2" "128" "16"
+                bash /app/training.sh "\${MASTER_ADDR}" "\${MASTER_PORT}" "\${NODE_RANK}" "\${NODE_COUNT}" "$NUM_GPU_PER_NODE" "8" "1024" "16"
                 echo "Training finished. Copying checkpoints to persistent storage."
                 # Only the rank 0 node should perform the copy to avoid race conditions.
                 if [ "\${NODE_RANK}" -eq 0 ]; then

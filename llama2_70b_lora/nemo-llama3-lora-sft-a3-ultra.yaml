@@ -153,17 +153,14 @@ spec:
                 value: "0"
               - name: LD_LIBRARY_PATH
                 value: /usr/local/nvidia/lib64
-              - name: "TORCH_DISTRIBUTED_BACKEND"
+              - name: TORCH_DISTRIBUTED_BACKEND
                 value: "nccl"
-              - name: "TP_COMM_OVERLAP"
-                value: "False"
               - name: NVTE_FWD_LAYERNORM_SM_MARGIN
                 value: "8"
               - name: NVTE_BWD_LAYERNORM_SM_MARGIN
                 value: "8"
               - name: CUDA_DEVICE_MAX_CONNECTIONS
                 value: "1"
-              
               - name: GLOO_SOCKET_IFNAME
                 value: "eth0"
               - name: JOB_IDENTIFIER
@@ -180,6 +177,8 @@ spec:
                 #echo "Added $LD_LIBRARY_PATH to ldconfig:"
                 ldconfig -p | grep libcuda | sed 's/^/  /'
                 echo ""
+
+                pip install transformers==4.46.3 
                 source /usr/local/gib/scripts/set_nccl_env.sh
                 #sleep infinity
                 #TORCH_DISTRIBUTED_DEBUG=DETAIL OMP_NUM_THREADS=2 accelerate launch --config_file configs/default_config.yaml  --gpu_ids all --num_machines=$NODE_COUNT --num_processes=16 --rdzv_backend static --main_process_ip=$MASTER_ADDR --main_process_port=$MASTER_PORT --machine_rank=$NODE_RANK --debug  \
