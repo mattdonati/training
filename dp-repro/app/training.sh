@@ -127,10 +127,10 @@ DATA_DIR="/mount/data"
 DEEPSPEED_CONFIG="$(realpath ds_config.json)"
 MODEL="/mount/base-model"
 MODEL_OUTPUT_NAME="trained-model"
-#TRAIN_FILE="$DATA_DIR/10K.csv"
-#EVAL_FILE="$DATA_DIR/1K.csv"
-TRAIN_FILE="$DATA_DIR/train-00000-of-00001.parquet"
-EVAL_FILE="$DATA_DIR/validation-00000-of-00001.parquet"
+TRAIN_FILE="$DATA_DIR/10K.csv"
+EVAL_FILE="$DATA_DIR/1K.csv"
+#TRAIN_FILE="$DATA_DIR/train-00000-of-00001.parquet"
+#EVAL_FILE="$DATA_DIR/validation-00000-of-00001.parquet"
 OUTPUT_DIR="/mount/local-checkpoints"
 
 mkdir -p "$OUTPUT_DIR"
@@ -162,7 +162,7 @@ poetry run python3 -c "import torch; print('Torch version:', torch.__version__);
 
 LOGFILE="$OUTPUT_DIR/log-$NODE_RANK.txt"
 >$LOGFILE
-PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" OMP_NUM_THREADS=$NUM_CPU_CORES poetry run deepspeed \
+OMP_NUM_THREADS=$NUM_CPU_CORES poetry run deepspeed \
     --hostfile=$HOSTFILE --no_ssh \
     --node_rank=$NODE_RANK \
     --master_addr=$MASTER_NODE_ADDRESS \
@@ -174,16 +174,16 @@ PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" OMP_NUM_THREADS=$NUM_CPU_CORE
     --torch_dtype bfloat16 \
     --use_auth_token True \
     --logging_strategy steps \
-    --logging_steps 24 \
+    --logging_steps 1 \
     --save_strategy steps \
     --save_steps 800 \
     --save_total_limit 10 \
     --num_train_epochs 1 \
-    --learning_rate 4e-4 \
+    --learning_rate 2e-6 \
     --warmup_steps 400 \
     --model_name_or_path $MODEL \
-    --max_source_length 2048\
-    --max_target_length 1024 \
+    --max_source_length 4000 \
+    --max_target_length 2000 \
     --do_train \
     --train_file $TRAIN_FILE \
     --validation_file $EVAL_FILE \
@@ -197,13 +197,6 @@ PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" OMP_NUM_THREADS=$NUM_CPU_CORE
     --per_device_eval_batch_size 1 \
     --ddp_backend nccl \
     --ddp_timeout 36000 \
+    --gradient_checkpointing \
     --preprocessing_num_workers $NUM_CPU_CORES \
-    --weight_decay 0.0001 \
-    --warmup_ratio 0 \
-    --max_grad_norm 0.3 \
-    --max_steps 1024 \
-    --logging_steps 24 --eval_steps 48 \
-    --gradient_checkpointing True \
     --deepspeed $DEEPSPEED_CONFIG
-
-echo "Training completed."
