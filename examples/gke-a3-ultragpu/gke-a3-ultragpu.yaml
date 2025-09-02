@@ -15,25 +15,25 @@
 blueprint_name: gke-a3-ultra
 
 vars:
-  project_id: # add this
-  deployment_name: # add this
-  region: # add this
-  zone: # add this
+  project_id: northam-ce-mlai-tpu # add this
+  deployment_name: mdonati-h200-ds # add this
+  region: us-central1 # add this
+  zone: us-central1-b # add this
   # Cidr block containing the IP of the machine calling terraform.
   # The following line must be updated for this example to work.
-  authorized_cidr: # add this
+  authorized_cidr: 34.58.14.23/32 # add this
   # The name of the compute engine reservation in the form of
   # <reservation-name>
   # To target a BLOCK_NAME, the name of the extended reservation
   # can be inputted as <reservation-name>/reservationBlocks/<reservation-block-name>
-  reservation: # add this
+  reservation: mdonati-mlperf2
   kueue_configuration_path: $(ghpc_stage("./kueue-configuration.yaml.tftpl"))
   gib_installer_path: $(ghpc_stage("./nccl-installer.yaml.tftpl"))
-  static_node_count: # add this
+  static_node_count: 2
   system_node_pool_disk_size_gb: 200
-  a3ultra_node_pool_disk_size_gb: 100
+  a3ultra_node_pool_disk_size_gb: 200
   accelerator_type: nvidia-h200-141gb
-  version_prefix: "1.31."
+  version_prefix: "1.33."
 
   enable_periodic_health_checks: false # Make this true to run CHS (healthchecks)
   health_check_schedule: "0 0 * * 0" # Run the health check at 12:00 AM (midnight) every Sunday

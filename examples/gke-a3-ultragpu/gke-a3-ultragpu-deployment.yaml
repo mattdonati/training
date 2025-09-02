@@ -16,25 +16,25 @@
 terraform_backend_defaults:
   type: gcs
   configuration:
-    bucket: BUCKET_NAME
+    bucket: mdonati-h200-uscentral1
 
 vars:
-  deployment_name: DEPLOYMENT_NAME
-  project_id: PROJECT_ID
-  region: COMPUTE_REGION
-  zone: COMPUTE_ZONE
+  deployment_name: mdonati-h200-ds
+  project_id: northam-ce-mlai-tpu
+  region: us-central1
+  zone: us-central1-b
   # Cidr block containing the IP of the machine calling terraform.
   # The following line must be updated for this example to work.
-  authorized_cidr: IP_ADDRESS/SUFFIX
+  authorized_cidr: 34.58.14.23/32
   # The name of the compute engine reservation in the form of
   # <reservation-name>
   # To target a BLOCK_NAME, the name of the extended reservation
   # can be inputted as <reservation-name>/reservationBlocks/<reservation-block-name>
-  reservation: RESERVATION_NAME
-  static_node_count: NODE_COUNT
-  system_node_pool_disk_size_gb: SYSTEM_NODE_POOL_DISK_SIZE_GB # the size of
+  reservation: mdonati-mlperf2
+  static_node_count: 2
+  system_node_pool_disk_size_gb: 200 # the size of
   # disk for each node of the system node pool.
-  a3ultra_node_pool_disk_size_gb: A3ULTRA_NODE_POOL_DISK_SIZE_GB # the size of
+  a3ultra_node_pool_disk_size_gb: 200 # the size of
   # disk for each node.
-  enable_periodic_health_checks: # Make this true to run CHS (healthchecks)
-  health_check_schedule: # Run the health check at 12:00 AM (midnight) every Sunday
+  enable_periodic_health_checks: false # Make this true to run CHS (healthchecks)
+  health_check_schedule: "0 0 * * 0" # Run the health check at 12:00 AM (midnight) every Sunday
