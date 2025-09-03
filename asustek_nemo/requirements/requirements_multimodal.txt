@@ -1,0 +1,14 @@
+addict==2.4.0
+clip==0.2.0
+decord==0.6.0
+diffusers==0.30.2
+einops_exts==0.0.4
+imageio==2.35.1
+kornia==0.7.3
+nerfacc==0.5.3
+open_clip_torch==2.24.0
+PyMCubes==0.1.6
+taming-transformers==0.0.1
+torchdiffeq==0.2.4
+torchsde==0.2.6
+trimesh==4.4.8
