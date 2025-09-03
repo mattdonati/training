@@ -18,9 +18,13 @@ from typing import Optional
 import os
 from datasets import load_dataset
 from mlperf_logging_utils import LoraLogger, MLPerfCallback
-from transformers import HfArgumentParser, Trainer, TrainingArguments
+from transformers import HfArgumentParser, Trainer, TrainingArguments, PrinterCallback
 from utils import create_and_prepare_model, peft_module_casting_to_bf16
 
+import transformers
+import logging 
+transformers.logging.set_verbosity_info()
+logging.getLogger("transformers.trainer").setLevel(logging.INFO)
 
 @dataclass
 class ScriptArguments:
@@ -166,7 +170,7 @@ def main(args):
         push_to_hub=args.push_to_hub,
         gradient_checkpointing=args.use_gradient_checkpointing,
         hub_model_id=args.hub_model_id,
-        report_to="all",
+        report_to="none",
         seed=args.seed,
         deepspeed=args.deepspeed,
     )
@@ -193,7 +197,8 @@ def main(args):
         args=training_arguments,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        callbacks=[MLPerfCallback(loralogger, len(train_dataset), len(eval_dataset),args.lora_alpha)],
+        #callbacks=[MLPerfCallback(loralogger, len(train_dataset), len(eval_dataset),args.lora_alpha)],
+        callbacks=[PrinterCallback()]
     )
     trainer.accelerator.print(f"{trainer.model}")
     if args.use_peft_lora:

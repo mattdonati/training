@@ -1,3 +1,7 @@
+This repo was originally cloned from Rick, and I think he must have started with the mlpfer ref implementation repo to start with 
+createed a branch for my specific cluster - mdonati-h200-acc
+
+
 # MLPerf™ Training Reference Implementations
 
 This is a repository of reference implementations for the MLPerf training benchmarks. These implementations are valid as starting points for benchmark implementations but are not fully optimized and are not intended to be used for "real" performance measurements of software frameworks or hardware. 

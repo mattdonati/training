@@ -1,0 +1,2 @@
+These scripts are meant to be copied to the pods mounted gcs bucket in order to be able to update the scripts without having to rebuild the container image 
+The commands run in the jobset yaml can be changed once the scripts are built into the image.  

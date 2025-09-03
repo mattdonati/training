@@ -1,0 +1,22 @@
+apiVersion: jobset.x-k8s.io/v1alpha2
+kind: JobSet
+metadata:
+  name: simple-test
+  namespace: default
+  #annotations:
+   # kueue.x-k8s.io/ignore: "true"
+spec:
+  replicatedJobs:
+  - name: workers
+    template:
+      spec:
+        parallelism: 1
+        completions: 1
+        backoffLimit: 0
+        template:
+          spec:
+            containers:
+            - name: pi
+              image: perl
+              command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+            restartPolicy: Never

@@ -1,0 +1,221 @@
+# Copyright (c) 2024, NVIDIA CORPORATION.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This file is a combination of megatron_gpt_peft_tuning_config.yaml, config_common.sh, and config_ESC_N8_H200_n2.sh
+
+defaults:
+  # TP is 2, CP is 1, MBS is 1, so this resolves to h100tp2mbs1
+  - optional tp_overlap@model.ub_tp_comm_overlap_cfg: h100tp2mbs1
+
+name: megatron_gpt_peft_lora_tuning
+
+trainer:
+  devices: 8 # set by config_common.sh: DGXNGPU=8
+  num_nodes: 2 # set by config_ESC_N8_H200_n2.sh: DGXNNODES=2
+  accelerator: gpu
+  precision: bf16-mixed # default value
+  max_steps: 1024 # set by config_ESC_N8_H200_n2.sh: MAX_STEPS=1024
+  # SKIP_EVALS=3, VAL_CHECK_INTERVAL=384, global_batch_size is 8.
+  # floor_div( (3+1) * 384, 8) = floor_div(1536, 8) = 192
+  val_check_interval: 192
+  check_val_every_n_epoch: null
+  log_every_n_steps: 0
+  gradient_clip_val: 0.3 # default value
+  gradient_clip_algorithm: 'norm'
+  num_sanity_val_steps: 0
+  max_epochs: 1000 # default value
+  limit_val_batches: 1.0 # default value
+  limit_train_batches: 1.0 # default value
+  limit_test_batches: 0
+  logger: False
+  enable_checkpointing: False
+  use_distributed_sampler: False
+  enable_progress_bar: False
+
+exp_manager:
+  log_tflops_per_sec_per_gpu: False
+  explicit_log_dir: null
+  exp_dir: "/results"
+  create_wandb_logger: False
+  resume_if_exists: False
+  resume_ignore_no_checkpoint: True
+  create_checkpoint_callback: False
+  log_global_rank_0_only: True
+  create_early_stopping_callback: False
+  create_tensorboard_logger: False
+
+model:
+  mcore_gpt: True
+  seed: 1 # default value
+  tensor_model_parallel_size: 2 # set by config_ESC_N8_H200_n2.sh: TP=2
+  pipeline_model_parallel_size: 1 # set by config_common.sh: PP=1
+  context_parallel_size: 1 # set by config_ESC_N8_H200_n2.sh: CP=1
+  cpu_offloading: False
+  dist_ckpt_load_strictness: "log_all"
+
+  # MINIBS=1, DGXNGPU=8, DGXNNODES=2, TP=2, PP=1, CP=1
+  # floor_div(1 * floor_div(8*2, 2*1), 1) = floor_div(1 * 8, 1) = 8
+  global_batch_size: 8
+  micro_batch_size: 1 # set by config_common.sh: MBS=1
+  max_position_embeddings: 8192 # default value
+  encoder_seq_length: 8192 # default value
+  restore_from_path: '/ckpt'
+  resume_from_checkpoint: null
+  save_nemo_on_validation_end: False
+  sync_batch_comm: False
+  megatron_amp_O2: True
+
+  sequence_parallel: True # set by config_common.sh: SP=1
+
+  activations_checkpoint_granularity: null # default value
+  activations_checkpoint_method: null # default value
+  activations_checkpoint_num_layers: null # default value
+  activations_checkpoint_layers_per_pipeline: null
+  answer_only_loss: True # default value
+  gradient_as_bucket_view: False
+
+  hidden_dropout: 0.0
+  attention_dropout: 0.0
+  ffn_dropout: 0.0
+  bias_activation_fusion: True
+  bias_dropout_add_fusion: False
+
+  transformer_engine: True # default value
+  fp8: True # set by config_common.sh: FP8=True
+  fp8_params: True # set by config_common.sh: FP8=True
+  fp8_hybrid: True # default value
+  fp8_amax_history_len: 32 # set by config_common.sh: FP8_AMAX_HISTORY=32
+  fp8_amax_compute_algo: max # set by config_common.sh: FP8_AMAX_ALGO=max
+  reduce_amax: False # set by config_common.sh: FP8_REDUCE_AMAX=False
+  fp8_e4m3: False # default value
+  fp8_interval: 1 # default value
+  fp8_margin: 0 # default value
+  fp8_dot_product_attention: 1 # set by config_ESC_N8_H200_n2.sh: FP8_DPA=1
+  activation_func_fp8_input_store: True # set by config_ESC_N8_H200_n2.sh: FP8_ACTIVATION=True
+  apply_rope_fusion: True
+  disable_parameter_transpose_cache: True
+
+  ub_tp_comm_overlap: True # set by config_ESC_N8_H200_n2.sh: TP_COMM_OVERLAP=1
+  tp_comm_overlap_ag: True # set by config_common.sh: MC_TP_OVERLAP_AG=True
+  tp_comm_overlap_rs: True # set by config_common.sh: MC_TP_OVERLAP_RS=True
+  tp_comm_overlap_rs_dgrad: True # set by config_common.sh: MC_TP_OVERLAP_RS_DGRAD=True
+  tp_comm_overlap_disable_qkv: True # default value
+  batch_p2p_comm: False # default value
+  virtual_pipeline_model_parallel_size: 1 # default value
+  sharp: False # default value
+  nccl_communicator_config_path: null # default value
+
+  peft:
+    peft_scheme: "lora"
+    restore_from_path: null
+    lora_tuning:
+      adapter_dim: 16 # default value
+      alpha: 32 # default value
+      adapter_dropout: 0.1 # default value
+      dropout_position: "pre"
+      target_modules: ['attention']
+      column_init_method: "kaiming"
+      row_init_method: "zero"
+      layer_selection:  null
+      weight_tying: False
+      position_embedding_strategy: null
+      a2a_experimental: 1 # set by config_common.sh: LORA_A2A=1
+
+  data:
+    multiprocessing_context: 'spawn'
+    pin_memory: True
+    sample_weight: 'constant'
+    validation_drop_last: False
+    train_ds:
+      file_names: ["/data/train.npy"]
+      packed_sequence: True
+      packed_sequence_return_cu_seqlen: False
+      index_mapping_dir: "/results/data_index/train"
+      global_batch_size: ${model.global_batch_size}
+      micro_batch_size: ${model.micro_batch_size}
+      shuffle: True
+      num_workers: 1 # default value
+      memmap_workers: 2
+      pin_memory: True
+      max_seq_length: 8192 # default value
+      min_seq_length: 1
+      drop_last: True
+      concat_sampling_probabilities:
+        - 1.0
+      label_key: "output"
+      add_eos: True
+      add_sep: False
+      add_bos: False
+      truncation_field: "input"
+      prompt_template: "{input} {output}"
+      truncation_method: "right"
+      seed: 1 # default value
+    validation_ds:
+      file_names: ["/data/validation.npy"]
+      packed_sequence: True
+      packed_sequence_return_cu_seqlen: False
+      index_mapping_dir: "/results/data_index/val"
+      names: null
+      global_batch_size: ${model.global_batch_size}
+      micro_batch_size: ${model.micro_batch_size}
+      shuffle: False
+      num_workers: 1 # default value
+      memmap_workers: ${model.data.train_ds.memmap_workers}
+      pin_memory: True
+      max_seq_length: 8192 # default value
+      min_seq_length: 1
+      drop_last: False
+      label_key: ${model.data.train_ds.label_key}
+      add_eos: ${model.data.train_ds.add_eos}
+      add_sep: ${model.data.train_ds.add_sep}
+      add_bos: ${model.data.train_ds.add_bos}
+      write_predictions_to_file: False
+      output_file_path_prefix: null
+      truncation_field: ${model.data.train_ds.truncation_field}
+      prompt_template: ${model.data.train_ds.prompt_template}
+      tokens_to_generate: 32
+      truncation_method: "right"
+      metric:
+        name: "loss"
+        average: null
+        num_classes: null
+
+  optim:
+    name: mcore_distributed_optim
+    overlap_grad_sync: True
+    overlap_param_sync: True
+    delay_grad_reduce: True
+    delay_param_gather: True
+    average_in_collective: False
+    lr: 0.0005 # set by config_ESC_N8_H200_n2.sh: LR=0.0005
+    min_lr: 0
+    weight_decay: 0.0001 # default value
+    betas: [0.9, 0.999]
+    eps: 1e-8
+    amsgrad: False
+    sched:
+      name: CosineAnnealing
+      warmup_ratio: 0.0 # default value
+      min_lr: 0.0 # default value
+      constant_steps: 0
+      monitor: val_loss
+      reduce_on_plateau: False
+
+  enable_cuda_graph: False # default value
+  enable_cg_fp8_weight_caching: True # default value
+  custom:
+    warmup: True # set by config_common.sh: WARMUP=True
+    warmup_train_steps: 5 # default value
+    warmup_validation_steps: 5 # default value
+    reset_fp8_stats_after_warmup: 1 # default value

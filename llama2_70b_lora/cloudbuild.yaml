@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # [START gke_ai_ml_maxdiffusion_build_server_cloudbuild]
+
+# Had to update $LOCATION with hard-coded location, us-central1, for some reason
+
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: [ 'build', '-t', '$LOCATION-docker.pkg.dev/$PROJECT_ID/gke-llm/mlperf:latest', '.' ]
+  args: [ 'build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/mdonati-h200/mlperf:latest', '.' ]
 images:
-- '$LOCATION-docker.pkg.dev/$PROJECT_ID/gke-llm/mlperf:latest'
+- 'us-central1-docker.pkg.dev/$PROJECT_ID/mdonati-h200/mlperf:latest'
 # [END gke_ai_ml_maxdiffusion_build_server_cloudbuild]
