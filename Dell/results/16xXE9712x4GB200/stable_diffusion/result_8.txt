@@ -1,0 +1,115 @@
+:::MLLOG {"namespace": "", "time_ms": 1746105416136, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416136, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416136, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416136, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416139, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416139, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416139, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416139, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416150, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416150, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416150, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416150, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416166, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416166, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416166, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416166, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416167, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416167, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416168, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416168, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416177, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416177, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416177, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416177, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416179, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416179, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416179, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416179, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416184, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416184, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416184, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416184, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416187, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416187, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416187, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416187, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416190, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416190, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416190, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416190, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416191, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416191, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416191, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416191, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416195, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416195, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416195, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416195, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416198, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416198, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416198, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416198, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416210, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416210, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416210, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416210, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416356, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416390, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416356, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416356, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416356, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416390, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416390, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+:::MLLOG {"namespace": "", "time_ms": 1746105416390, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105430602, "event_type": "INTERVAL_START", "key": "init_start", "value": null, "metadata": {"file": "/workspace/sd/main.py", "lineno": 86}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105431326, "event_type": "POINT_IN_TIME", "key": "seed", "value": 1696692413, "metadata": {"file": "/workspace/sd/main.py", "lineno": 109}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464275, "event_type": "POINT_IN_TIME", "key": "gradient_accumulation_steps", "value": 1, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 271}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464290, "event_type": "POINT_IN_TIME", "key": "global_batch_size", "value": 512, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 275}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464291, "event_type": "POINT_IN_TIME", "key": "opt_name", "value": "adamw", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 279}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464291, "event_type": "POINT_IN_TIME", "key": "opt_adamw_beta_1", "value": 0.9, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 280}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464291, "event_type": "POINT_IN_TIME", "key": "opt_adamw_beta_2", "value": 0.999, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 281}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464291, "event_type": "POINT_IN_TIME", "key": "opt_adamw_epsilon", "value": 1e-08, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 282}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464291, "event_type": "POINT_IN_TIME", "key": "opt_adamw_weight_decay", "value": 0.01, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 283}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464291, "event_type": "POINT_IN_TIME", "key": "opt_base_learning_rate", "value": 0.00011776, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 285}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464291, "event_type": "POINT_IN_TIME", "key": "opt_learning_rate_warmup_steps", "value": 1000, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 286}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464291, "event_type": "POINT_IN_TIME", "key": "train_samples", "value": 6513144, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 291}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464291, "event_type": "POINT_IN_TIME", "key": "eval_samples", "value": 30000, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 292}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464292, "event_type": "POINT_IN_TIME", "key": "submission_benchmark", "value": "stable_diffusion", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 294}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464292, "event_type": "POINT_IN_TIME", "key": "submission_org", "value": "Dell", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 294}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464292, "event_type": "POINT_IN_TIME", "key": "submission_division", "value": "closed", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 294}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464292, "event_type": "POINT_IN_TIME", "key": "submission_status", "value": "onprem", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 294}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105464292, "event_type": "POINT_IN_TIME", "key": "submission_platform", "value": "16xXE9712x4GB200", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 294}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105531981, "event_type": "INTERVAL_END", "key": "init_stop", "value": null, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 426}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105531982, "event_type": "INTERVAL_START", "key": "run_start", "value": null, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 426}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105531982, "event_type": "INTERVAL_START", "key": "block_start", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 436, "samples_count": 0}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105569108, "event_type": "INTERVAL_END", "key": "block_stop", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 470, "samples_count": 0}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105569109, "event_type": "POINT_IN_TIME", "key": "tracked_stats", "value": {"throughput": 4992.801548600407, "train_step_time": 0.10254763683598139, "max_memory_usage": 11.123}, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 494, "step_num": 0}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105569625, "event_type": "INTERVAL_START", "key": "block_start", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 436, "samples_count": 512000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105607779, "event_type": "INTERVAL_END", "key": "block_stop", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 470, "samples_count": 512000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105607780, "event_type": "POINT_IN_TIME", "key": "tracked_stats", "value": {"throughput": 13239.915635498459, "train_step_time": 0.03867094127301243, "max_memory_usage": 11.123}, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 494, "step_num": 1000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105608258, "event_type": "INTERVAL_START", "key": "block_start", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 436, "samples_count": 1024000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105646150, "event_type": "INTERVAL_END", "key": "block_stop", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 470, "samples_count": 1024000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105646150, "event_type": "POINT_IN_TIME", "key": "tracked_stats", "value": {"throughput": 13343.458645112567, "train_step_time": 0.038370861230010635, "max_memory_usage": 11.123}, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 494, "step_num": 2000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105646635, "event_type": "INTERVAL_START", "key": "block_start", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 436, "samples_count": 1536000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105685506, "event_type": "INTERVAL_END", "key": "block_stop", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 470, "samples_count": 1536000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105685507, "event_type": "POINT_IN_TIME", "key": "tracked_stats", "value": {"throughput": 13009.35551995941, "train_step_time": 0.03935629241698189, "max_memory_usage": 11.123}, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 494, "step_num": 3000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105685995, "event_type": "INTERVAL_START", "key": "block_start", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 436, "samples_count": 2048000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105724669, "event_type": "INTERVAL_END", "key": "block_stop", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 470, "samples_count": 2048000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105724670, "event_type": "POINT_IN_TIME", "key": "tracked_stats", "value": {"throughput": 13073.578601349755, "train_step_time": 0.039162957260006806, "max_memory_usage": 11.123}, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 494, "step_num": 4000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105725150, "event_type": "INTERVAL_START", "key": "block_start", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 436, "samples_count": 2560000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105762597, "event_type": "INTERVAL_END", "key": "block_stop", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 470, "samples_count": 2560000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105762598, "event_type": "POINT_IN_TIME", "key": "tracked_stats", "value": {"throughput": 13499.23611206766, "train_step_time": 0.03792807205900317, "max_memory_usage": 11.123}, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 494, "step_num": 5000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105818431, "event_type": "INTERVAL_START", "key": "eval_start", "value": null, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 98, "samples_count": 1024000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105917927, "event_type": "POINT_IN_TIME", "key": "eval_accuracy", "value": 134.03641010039468, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 194, "samples_count": 1024000, "metric": "FID"}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105933946, "event_type": "POINT_IN_TIME", "key": "eval_accuracy", "value": 0.12134845554828644, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 224, "samples_count": 1024000, "metric": "CLIP"}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105933947, "event_type": "INTERVAL_END", "key": "eval_stop", "value": null, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 235, "samples_count": 1024000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105946614, "event_type": "INTERVAL_START", "key": "eval_start", "value": null, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 98, "samples_count": 1536000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746106034503, "event_type": "POINT_IN_TIME", "key": "eval_accuracy", "value": 99.11636732698861, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 194, "samples_count": 1536000, "metric": "FID"}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746106050164, "event_type": "POINT_IN_TIME", "key": "eval_accuracy", "value": 0.16099821031093597, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 224, "samples_count": 1536000, "metric": "CLIP"}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746106050164, "event_type": "INTERVAL_END", "key": "eval_stop", "value": null, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 235, "samples_count": 1536000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746106062547, "event_type": "INTERVAL_START", "key": "eval_start", "value": null, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 98, "samples_count": 2048000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746106150533, "event_type": "POINT_IN_TIME", "key": "eval_accuracy", "value": 84.57413486335372, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 194, "samples_count": 2048000, "metric": "FID"}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746106171047, "event_type": "POINT_IN_TIME", "key": "eval_accuracy", "value": 0.16878187656402588, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 224, "samples_count": 2048000, "metric": "CLIP"}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746106171048, "event_type": "INTERVAL_END", "key": "eval_stop", "value": null, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 235, "samples_count": 2048000}}
+ 0: :::MLLOG {"namespace": "", "time_ms": 1746105685506, "event_type": "INTERVAL_END", "key": "run_stop", "value": null, "metadata": {"file": "/usr/local/lib/python3.12/dist-packages/hydra/core/utils.py", "lineno": 186, "status": "success", "step_num": 4000}}

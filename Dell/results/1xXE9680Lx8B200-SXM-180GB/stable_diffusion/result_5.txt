@@ -1,0 +1,184 @@
++ echo 'Beginning trial 06 of 10'
+Beginning trial 06 of 10
++ echo ':::DLPAL dockerd://mlperf-dell:sdxl 115 1 tnasnt6 '\''unknown'\'' XE9680Lx8B200-SXM-180GB_01x08x32'
+:::DLPAL dockerd://mlperf-dell:sdxl 115 1 tnasnt6 'unknown' XE9680Lx8B200-SXM-180GB_01x08x32
+++ srun -N1 -n1 --container-name=stable_diffusion_115 --no-container-mount-home --container-remap-root --container-writable mlperf-sysjson.sh
++ echo ':::SYSJSON {"submitter":"Dell","division":"closed","status":"Available on-premise","system_name":"1xXE9680Lx8B200-SXM-180GB","number_of_nodes":"1","host_processors_per_node":"2","host_processor_model_name":"INTEL(R) XEON(R) PLATINUM 8562Y+","host_processor_core_count":"32","host_processor_vcpu_count":"","host_processor_frequency":"","host_processor_caches":"","host_processor_interconnect":"","host_memory_capacity":"3.9 TB","host_storage_type":"","host_storage_capacity":"","host_networking":"","host_networking_topology":"","host_memory_configuration":"","accelerators_per_node":"8","accelerator_model_name":"Dell B200","accelerator_host_interconnect":"","accelerator_frequency":"","accelerator_on-chip_memories":"","accelerator_memory_configuration":"","accelerator_memory_capacity":"183359 MiB","accelerator_interconnect":"","accelerator_interconnect_topology":"","cooling":"","hw_notes":"","framework":"PyTorch Dell Release 25.04","framework_name":"","other_software_stack":{"cuda_version":"12.9.0.036","cuda_driver_version":"575.51.02","nccl_version":"2.26.3","cublas_version":"12.9.0.2","cudnn_version":"9.9.0.52","trt_version":"10.9.0.34+cuda12.8","dali_version":"1.48.0","mofed_version":"5.4-rdmacore50.0","openmpi_version":"4.1.7","kernel_version":"Linux 5.15.0-138-generic","nvidia_kernel_driver":"570.124.06"},"operating_system":"Ubuntu 24.04.2 LTS","sw_notes":""}'
+:::SYSJSON {"submitter":"Dell","division":"closed","status":"Available on-premise","system_name":"1xXE9680Lx8B200-SXM-180GB","number_of_nodes":"1","host_processors_per_node":"2","host_processor_model_name":"INTEL(R) XEON(R) PLATINUM 8562Y+","host_processor_core_count":"32","host_processor_vcpu_count":"","host_processor_frequency":"","host_processor_caches":"","host_processor_interconnect":"","host_memory_capacity":"3.9 TB","host_storage_type":"","host_storage_capacity":"","host_networking":"","host_networking_topology":"","host_memory_configuration":"","accelerators_per_node":"8","accelerator_model_name":"Dell B200","accelerator_host_interconnect":"","accelerator_frequency":"","accelerator_on-chip_memories":"","accelerator_memory_configuration":"","accelerator_memory_capacity":"183359 MiB","accelerator_interconnect":"","accelerator_interconnect_topology":"","cooling":"","hw_notes":"","framework":"PyTorch Dell Release 25.04","framework_name":"","other_software_stack":{"cuda_version":"12.9.0.036","cuda_driver_version":"575.51.02","nccl_version":"2.26.3","cublas_version":"12.9.0.2","cudnn_version":"9.9.0.52","trt_version":"10.9.0.34+cuda12.8","dali_version":"1.48.0","mofed_version":"5.4-rdmacore50.0","openmpi_version":"4.1.7","kernel_version":"Linux 5.15.0-138-generic","nvidia_kernel_driver":"570.124.06"},"operating_system":"Ubuntu 24.04.2 LTS","sw_notes":""}
++ srun -N1 -n1 --container-name=stable_diffusion_115 --no-container-mount-home --container-remap-root --container-writable bash -c 'echo ":::GITCOMMITID ${GIT_COMMIT_ID} ${LAUNCHER_GIT_COMMIT_ID}"'
+:::GITCOMMITID  
++ [[ 1 -eq 1 ]]
++ srun --ntasks-per-node=1 --mpi=pmix bash -c 'echo -n '\''Clearing cache on '\'' && hostname && sync && sudo /sbin/sysctl vm.drop_caches=3'
+Clearing cache on tnasnt6
+vm.drop_caches = 3
++ srun --ntasks-per-node=1 --mpi=pmix --container-name=stable_diffusion_115 --no-container-mount-home --container-remap-root --container-writable python -c '
+from mlperf_logging import mllog
+mllogger = mllog.get_mllogger()
+mllogger.event(key=mllog.constants.CACHE_CLEAR, value=True)'
+:::MLLOG {"namespace": "", "time_ms": 1745734858543, "event_type": "POINT_IN_TIME", "key": "cache_clear", "value": true, "metadata": {"file": "<string>", "lineno": 4}}
++ export RANDOM_SEED=7970
++ RANDOM_SEED=7970
++ export EXP_NAME=stable-diffusion2-train-250427015417418692628-06
++ EXP_NAME=stable-diffusion2-train-250427015417418692628-06
++ set +e
+++ date +%s
++ echo 'RUNANDTIME_START 1745734858'
+RUNANDTIME_START 1745734858
++ srun -l --mpi=pmix --ntasks-per-node=8 --time=110 --container-name=stable_diffusion_115 --no-container-mount-home --container-remap-root --container-writable --container-mounts=/root/training_results_v5.0/stable_diffusion/results:/results,/training_datasets_v5.0/training_datasets_v4.1/sdxl/datasets/laion-400m/webdataset-moments-filtered-encoded:/datasets,/training_datasets_v5.0/training_datasets_v4.1/sdxl/datasets/coco2014:/coco2014/,/training_datasets_v5.0/training_datasets_v4.1/sdxl/checkpoints/clip:/checkpoints/clip,/training_datasets_v5.0/training_datasets_v4.1/sdxl/checkpoints/inception:/checkpoints/inception,/training_datasets_v5.0/training_datasets_v4.1/sdxl/checkpoints/sd:/checkpoints/sd --container-workdir=/workspace/sd --container-env=MASTER_PORT,MASTER_ADDR slurm2pytorch ./run_and_time.sh
+0: RANDOM_SEED=7970
+0: :::MLLOG {"namespace": "", "time_ms": 1745734880070, "event_type": "INTERVAL_START", "key": "init_start", "value": null, "metadata": {"file": "/workspace/sd/main.py", "lineno": 86}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734881825, "event_type": "POINT_IN_TIME", "key": "seed", "value": 3603411959, "metadata": {"file": "/workspace/sd/main.py", "lineno": 109}}
+0: GPU available: True (cuda), used: True
+0: TPU available: False, using: 0 TPU cores
+0: HPU available: False, using: 0 HPUs
+0: Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/8
+2: Initializing distributed: GLOBAL_RANK: 2, MEMBER: 3/8
+4: Initializing distributed: GLOBAL_RANK: 4, MEMBER: 5/8
+6: Initializing distributed: GLOBAL_RANK: 6, MEMBER: 7/8
+1: Initializing distributed: GLOBAL_RANK: 1, MEMBER: 2/8
+7: Initializing distributed: GLOBAL_RANK: 7, MEMBER: 8/8
+3: Initializing distributed: GLOBAL_RANK: 3, MEMBER: 4/8
+5: Initializing distributed: GLOBAL_RANK: 5, MEMBER: 6/8
+0: ----------------------------------------------------------------------------------------------------
+0: distributed_backend=nccl
+0: All distributed processes registered. Starting with 8 processes
+0: ----------------------------------------------------------------------------------------------------
+0: 
+0: LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1,2,3,4,5,6,7]
+1: LOCAL_RANK: 1 - CUDA_VISIBLE_DEVICES: [0,1,2,3,4,5,6,7]
+2: LOCAL_RANK: 2 - CUDA_VISIBLE_DEVICES: [0,1,2,3,4,5,6,7]
+3: LOCAL_RANK: 3 - CUDA_VISIBLE_DEVICES: [0,1,2,3,4,5,6,7]
+5: LOCAL_RANK: 5 - CUDA_VISIBLE_DEVICES: [0,1,2,3,4,5,6,7]
+6: LOCAL_RANK: 6 - CUDA_VISIBLE_DEVICES: [0,1,2,3,4,5,6,7]
+4: LOCAL_RANK: 4 - CUDA_VISIBLE_DEVICES: [0,1,2,3,4,5,6,7]
+7: LOCAL_RANK: 7 - CUDA_VISIBLE_DEVICES: [0,1,2,3,4,5,6,7]
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910040, "event_type": "POINT_IN_TIME", "key": "gradient_accumulation_steps", "value": 1, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 271}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910052, "event_type": "POINT_IN_TIME", "key": "global_batch_size", "value": 256, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 275}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910053, "event_type": "POINT_IN_TIME", "key": "opt_name", "value": "adamw", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 279}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910053, "event_type": "POINT_IN_TIME", "key": "opt_adamw_beta_1", "value": 0.9, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 280}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910053, "event_type": "POINT_IN_TIME", "key": "opt_adamw_beta_2", "value": 0.999, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 281}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910053, "event_type": "POINT_IN_TIME", "key": "opt_adamw_epsilon", "value": 1e-08, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 282}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910053, "event_type": "POINT_IN_TIME", "key": "opt_adamw_weight_decay", "value": 0.01, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 283}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910053, "event_type": "POINT_IN_TIME", "key": "opt_base_learning_rate", "value": 7.168e-05, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 285}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910053, "event_type": "POINT_IN_TIME", "key": "opt_learning_rate_warmup_steps", "value": 1000, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 286}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910053, "event_type": "POINT_IN_TIME", "key": "train_samples", "value": 6513144, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 291}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910053, "event_type": "POINT_IN_TIME", "key": "eval_samples", "value": 30000, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 292}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910053, "event_type": "POINT_IN_TIME", "key": "submission_benchmark", "value": "stable_diffusion", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 294}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910053, "event_type": "POINT_IN_TIME", "key": "submission_org", "value": "Dell", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 294}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910053, "event_type": "POINT_IN_TIME", "key": "submission_division", "value": "closed", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 294}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910054, "event_type": "POINT_IN_TIME", "key": "submission_status", "value": "onprem", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 294}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734910054, "event_type": "POINT_IN_TIME", "key": "submission_platform", "value": "1xXE9680Lx8B200-SXM-180GB", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 294}}
+0: 
+0:   | Name  | Type            | Params | Mode 
+0: --------------------------------------------------
+0: 0 | model | LatentDiffusion | 865 M  | train
+0: --------------------------------------------------
+0: 865 M     Trainable params
+0: 0         Non-trainable params
+0: 865 M     Total params
+0: 3,463.643 Total estimated model params size (MB)
+0: 993       Modules in train mode
+0: 482       Modules in eval mode
+1: SLURM auto-requeueing enabled. Setting signal handlers.
+2: SLURM auto-requeueing enabled. Setting signal handlers.
+3: SLURM auto-requeueing enabled. Setting signal handlers.
+4: SLURM auto-requeueing enabled. Setting signal handlers.
+6: SLURM auto-requeueing enabled. Setting signal handlers.
+0: SLURM auto-requeueing enabled. Setting signal handlers.
+5: SLURM auto-requeueing enabled. Setting signal handlers.
+7: SLURM auto-requeueing enabled. Setting signal handlers.
+0: CUDAGraphCallback: disable autocast cache.
+0: CUDAGraphCallback: disable autocast cache.
+4: ninja: no work to do.
+2: ninja: no work to do.
+6: ninja: no work to do.
+1: ninja: no work to do.
+0: ninja: no work to do.
+0: CUDAGraphCallback: set optimizer.zero_grad as nop during graph capturing.
+0: :::MLLOG {"namespace": "", "time_ms": 1745734956375, "event_type": "INTERVAL_END", "key": "init_stop", "value": null, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 426}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734956376, "event_type": "INTERVAL_START", "key": "run_start", "value": null, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 426}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745734956377, "event_type": "INTERVAL_START", "key": "block_start", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 436, "samples_count": 0}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745735185320, "event_type": "INTERVAL_END", "key": "block_stop", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 470, "samples_count": 0}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745735185323, "event_type": "POINT_IN_TIME", "key": "tracked_stats", "value": {"throughput": 1866.493958503127, "train_step_time": 0.137155547079994, "max_memory_usage": 30.025}, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 494, "step_num": 0}}
+0: Epoch 0, global step 2000: 'timestamp' reached 1745735185320.00000 (best 1745735185320.00000), saving model to '/tmp/nemologs/stable-diffusion2-train-250427015417418692628-06/checkpoints/stable-diffusion2-train-250427015417418692628-06--timestamp=1745735185320.0-step=2000-consumed_samples=512000.0.ckpt' as top 1
+0: :::MLLOG {"namespace": "", "time_ms": 1745735186644, "event_type": "INTERVAL_START", "key": "block_start", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 436, "samples_count": 512000}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745735418333, "event_type": "INTERVAL_END", "key": "block_stop", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 470, "samples_count": 512000}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745735418333, "event_type": "POINT_IN_TIME", "key": "tracked_stats", "value": {"throughput": 2197.3051020706826, "train_step_time": 0.11650635123850225, "max_memory_usage": 30.025}, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 494, "step_num": 2000}}
+0: Epoch 1, global step 4000: 'timestamp' reached 1745735418332.00000 (best 1745735185320.00000), saving model to '/tmp/nemologs/stable-diffusion2-train-250427015417418692628-06/checkpoints/stable-diffusion2-train-250427015417418692628-06--timestamp=1745735418332.0-step=4000-consumed_samples=1024000.0.ckpt' as top 2
+0: :::MLLOG {"namespace": "", "time_ms": 1745735419772, "event_type": "INTERVAL_START", "key": "block_start", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 436, "samples_count": 1024000}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745735651730, "event_type": "INTERVAL_END", "key": "block_stop", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 470, "samples_count": 1024000}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745735651730, "event_type": "POINT_IN_TIME", "key": "tracked_stats", "value": {"throughput": 2193.6874828227387, "train_step_time": 0.11669848235200334, "max_memory_usage": 30.025}, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 494, "step_num": 4000}}
+0: Epoch 1, global step 6000: 'timestamp' reached 1745735651729.00000 (best 1745735185320.00000), saving model to '/tmp/nemologs/stable-diffusion2-train-250427015417418692628-06/checkpoints/stable-diffusion2-train-250427015417418692628-06--timestamp=1745735651729.0-step=6000-consumed_samples=1536000.0.ckpt' as top 3
+0: :::MLLOG {"namespace": "", "time_ms": 1745735653163, "event_type": "INTERVAL_START", "key": "block_start", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 436, "samples_count": 1536000}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745735885227, "event_type": "INTERVAL_END", "key": "block_stop", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 470, "samples_count": 1536000}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745735885228, "event_type": "POINT_IN_TIME", "key": "tracked_stats", "value": {"throughput": 2192.7409507709317, "train_step_time": 0.11674885713699769, "max_memory_usage": 30.025}, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 494, "step_num": 6000}}
+0: Epoch 2, global step 8000: 'timestamp' reached 1745735885227.00000 (best 1745735185320.00000), saving model to '/tmp/nemologs/stable-diffusion2-train-250427015417418692628-06/checkpoints/stable-diffusion2-train-250427015417418692628-06--timestamp=1745735885227.0-step=8000-consumed_samples=2048000.0.ckpt' as top 4
+0: :::MLLOG {"namespace": "", "time_ms": 1745735886657, "event_type": "INTERVAL_START", "key": "block_start", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 436, "samples_count": 2048000}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745736118542, "event_type": "INTERVAL_END", "key": "block_stop", "value": "training_step", "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 470, "samples_count": 2048000}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745736118542, "event_type": "POINT_IN_TIME", "key": "tracked_stats", "value": {"throughput": 2194.4671460797736, "train_step_time": 0.11665702102550131, "max_memory_usage": 30.025}, "metadata": {"file": "/workspace/sd/callbacks.py", "lineno": 494, "step_num": 8000}}
+0: Epoch 3, global step 10000: 'timestamp' reached 1745736118541.00000 (best 1745735185320.00000), saving model to '/tmp/nemologs/stable-diffusion2-train-250427015417418692628-06/checkpoints/stable-diffusion2-train-250427015417418692628-06--timestamp=1745736118541.0-step=10000-consumed_samples=2560000.0.ckpt' as top 5
+0: `Trainer.fit` stopped: `max_steps=10000` reached.
+1: [rank1]:[W427 06:42:05.080019159 ProcessGroupNCCL.cpp:1477] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+2: [rank2]:[W427 06:42:05.090034643 ProcessGroupNCCL.cpp:1477] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+4: [rank4]:[W427 06:42:05.101332138 ProcessGroupNCCL.cpp:1477] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+5: [rank5]:[W427 06:42:05.110090770 ProcessGroupNCCL.cpp:1477] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+6: [rank6]:[W427 06:42:05.118585789 ProcessGroupNCCL.cpp:1477] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+7: [rank7]:[W427 06:42:05.121431013 ProcessGroupNCCL.cpp:1477] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+3: [rank3]:[W427 06:42:05.222029657 ProcessGroupNCCL.cpp:1477] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+0: [rank0]:[W427 06:42:05.249826528 ProcessGroupNCCL.cpp:1477] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+0: CKPT_PATH=/tmp/nemologs/stable-diffusion2-train-250427015417418692628-06/checkpoints/
+0: Using 16bit Automatic Mixed Precision (AMP)
+0: GPU available: True (cuda), used: True
+0: TPU available: False, using: 0 TPU cores
+0: HPU available: False, using: 0 HPUs
+0: setting number of microbatches to constant 1
+2: Initializing distributed: GLOBAL_RANK: 2, MEMBER: 3/8
+0: Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/8
+7: Initializing distributed: GLOBAL_RANK: 7, MEMBER: 8/8
+3: Initializing distributed: GLOBAL_RANK: 3, MEMBER: 4/8
+6: Initializing distributed: GLOBAL_RANK: 6, MEMBER: 7/8
+4: Initializing distributed: GLOBAL_RANK: 4, MEMBER: 5/8
+5: Initializing distributed: GLOBAL_RANK: 5, MEMBER: 6/8
+1: Initializing distributed: GLOBAL_RANK: 1, MEMBER: 2/8
+0: ----------------------------------------------------------------------------------------------------
+0: distributed_backend=nccl
+0: All distributed processes registered. Starting with 8 processes
+0: ----------------------------------------------------------------------------------------------------
+0: 
+5: [rank5]:[W427 06:42:47.130607519 ProcessGroupNCCL.cpp:4751] [PG ID 0 PG GUID 0 Rank 5]  using GPU 5 as device used by this process is currently unknown. This can potentially cause a hang if this rank to GPU mapping is incorrect. You can pecify device_id in init_process_group() to force use of a particular device.
+1: [rank1]:[W427 06:42:47.157505155 ProcessGroupNCCL.cpp:4751] [PG ID 0 PG GUID 0 Rank 1]  using GPU 1 as device used by this process is currently unknown. This can potentially cause a hang if this rank to GPU mapping is incorrect. You can pecify device_id in init_process_group() to force use of a particular device.
+6: [rank6]:[W427 06:42:47.210482781 ProcessGroupNCCL.cpp:4751] [PG ID 0 PG GUID 0 Rank 6]  using GPU 6 as device used by this process is currently unknown. This can potentially cause a hang if this rank to GPU mapping is incorrect. You can pecify device_id in init_process_group() to force use of a particular device.
+0: [rank0]:[W427 06:42:47.213185715 ProcessGroupNCCL.cpp:4751] [PG ID 0 PG GUID 0 Rank 0]  using GPU 0 as device used by this process is currently unknown. This can potentially cause a hang if this rank to GPU mapping is incorrect. You can pecify device_id in init_process_group() to force use of a particular device.
+2: [rank2]:[W427 06:42:47.215325560 ProcessGroupNCCL.cpp:4751] [PG ID 0 PG GUID 0 Rank 2]  using GPU 2 as device used by this process is currently unknown. This can potentially cause a hang if this rank to GPU mapping is incorrect. You can pecify device_id in init_process_group() to force use of a particular device.
+7: [rank7]:[W427 06:42:47.217793502 ProcessGroupNCCL.cpp:4751] [PG ID 0 PG GUID 0 Rank 7]  using GPU 7 as device used by this process is currently unknown. This can potentially cause a hang if this rank to GPU mapping is incorrect. You can pecify device_id in init_process_group() to force use of a particular device.
+4: [rank4]:[W427 06:42:47.219320097 ProcessGroupNCCL.cpp:4751] [PG ID 0 PG GUID 0 Rank 4]  using GPU 4 as device used by this process is currently unknown. This can potentially cause a hang if this rank to GPU mapping is incorrect. You can pecify device_id in init_process_group() to force use of a particular device.
+3: [rank3]:[W427 06:42:47.221149023 ProcessGroupNCCL.cpp:4751] [PG ID 0 PG GUID 0 Rank 3]  using GPU 3 as device used by this process is currently unknown. This can potentially cause a hang if this rank to GPU mapping is incorrect. You can pecify device_id in init_process_group() to force use of a particular device.
+0: :::MLLOG {"namespace": "", "time_ms": 1745736170923, "event_type": "INTERVAL_START", "key": "eval_start", "value": null, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 98, "samples_count": 1024000}}
+7: ninja: no work to do.
+3: ninja: no work to do.
+0: ninja: no work to do.
+4: ninja: no work to do.
+0: :::MLLOG {"namespace": "", "time_ms": 1745736836671, "event_type": "POINT_IN_TIME", "key": "eval_accuracy", "value": 120.34283807742293, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 194, "samples_count": 1024000, "metric": "FID"}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745736885328, "event_type": "POINT_IN_TIME", "key": "eval_accuracy", "value": 0.13155633211135864, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 224, "samples_count": 1024000, "metric": "CLIP"}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745736885329, "event_type": "INTERVAL_END", "key": "eval_stop", "value": null, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 235, "samples_count": 1024000}}
+0: Using 16bit Automatic Mixed Precision (AMP)
+0: GPU available: True (cuda), used: True
+0: TPU available: False, using: 0 TPU cores
+0: HPU available: False, using: 0 HPUs
+0: :::MLLOG {"namespace": "", "time_ms": 1745736899954, "event_type": "INTERVAL_START", "key": "eval_start", "value": null, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 98, "samples_count": 1536000}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745737563733, "event_type": "POINT_IN_TIME", "key": "eval_accuracy", "value": 100.4965576592113, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 194, "samples_count": 1536000, "metric": "FID"}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745737616113, "event_type": "POINT_IN_TIME", "key": "eval_accuracy", "value": 0.14936605095863342, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 224, "samples_count": 1536000, "metric": "CLIP"}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745737616114, "event_type": "INTERVAL_END", "key": "eval_stop", "value": null, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 235, "samples_count": 1536000}}
+0: Using 16bit Automatic Mixed Precision (AMP)
+0: GPU available: True (cuda), used: True
+0: TPU available: False, using: 0 TPU cores
+0: HPU available: False, using: 0 HPUs
+0: :::MLLOG {"namespace": "", "time_ms": 1745737631294, "event_type": "INTERVAL_START", "key": "eval_start", "value": null, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 98, "samples_count": 2048000}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745738296793, "event_type": "POINT_IN_TIME", "key": "eval_accuracy", "value": 80.52595160666164, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 194, "samples_count": 2048000, "metric": "FID"}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745738349609, "event_type": "POINT_IN_TIME", "key": "eval_accuracy", "value": 0.17604604363441467, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 224, "samples_count": 2048000, "metric": "CLIP"}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745738349610, "event_type": "INTERVAL_END", "key": "eval_stop", "value": null, "metadata": {"file": "/workspace/sd/infer_and_eval.py", "lineno": 235, "samples_count": 2048000}}
+0: :::MLLOG {"namespace": "", "time_ms": 1745735885227, "event_type": "INTERVAL_END", "key": "run_stop", "value": null, "metadata": {"file": "/usr/local/lib/python3.12/dist-packages/hydra/core/utils.py", "lineno": 186, "status": "success", "step_num": 8000}}
+++ date +%s
++ echo 'RUNANDTIME_STOP 1745738355'
+RUNANDTIME_STOP 1745738355
++ set -e

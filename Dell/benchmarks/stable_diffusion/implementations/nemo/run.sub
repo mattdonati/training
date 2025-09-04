@@ -1,6 +1,5 @@
 #!/bin/bash
-
-# Copyright (c) 2024-2025, NVIDIA CORPORATION. All rights reserved.
+# Copyright (c) 2023-2025, NVIDIA CORPORATION.  All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,59 +13,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# --- SLURM Directives ---
-# These lines are instructions for the Slurm workload manager.
-# --exclusive: Requests exclusive node allocation for the job, meaning no other jobs can run on the same nodes.
-# --mem=0: Requests all available memory on the allocated nodes for the job.
 #SBATCH --exclusive
 #SBATCH --mem=0
 
-# --- Shell Script Settings ---
-# set -e: Exit immediately if a command exits with a non-zero status.
-# set -u: Treat unset variables as an error when substituting.
-# set -x: Print commands and their arguments as they are executed, which is useful for debugging.
-set -eux
+set -euxo pipefail
 
-# Log the start time of the script's prolog (the setup phase before the main experiment).
 echo "PROLOG_START $(date +%s)"
 
-# --- Variable Definitions ---
-
 # Vars without defaults
-# These variables MUST be set in the environment before this script is called.
-# The ':${VAR:?VAR not set}' syntax will cause the script to exit with an error if the variable is not set.
-: "${CONT:?CONT not set}"
 : "${DGXSYSTEM:?DGXSYSTEM not set}"
+: "${CONT:?CONT not set}"
 : "${WALLTIME_RUNANDTIME:?WALLTIME_RUNANDTIME not set}"
 
 # Vars with defaults
-# These variables have default values if they are not already set in the environment.
-: "${CHECK_COMPLIANCE:=1}"
 : "${MLPERF_RULESET:=5.0.0}"
 : "${MLPERF_SYSTEM_NAME:='unknown'}"
 : "${MLPERF_SCALE:='unknown'}"
 : "${MLPERF_CLUSTER_NAME:='unknown'}"
 : "${MILESTONE_YML:=unknown}"
-: "${DGXNGPU:=8}"
 : "${NEXP:=1}"
-: "${SEED_BASE:=${SEED-$RANDOM}}"
 : "${DATESTAMP:=$(date +'%y%m%d%H%M%S%N')}"
 : "${CLEAR_CACHES:=1}"
+: "${CHECK_COMPLIANCE:=1}"
+: "${WORK_DIR:=/workspace/sd}"
+# ci automagically sets this correctly on Selene
 : "${LOGDIR:=./results}"
-: "${DROPCACHE_CMD:="sudo /sbin/sysctl vm.drop_caches=3"}"
 : "${POWERLOGDIR:=' '}" # Power traces output dir
 : "${POWERCMDDIR:=' '}" # Path to power monitor
+: "${DROPCACHE_CMD:="sudo /sbin/sysctl vm.drop_caches=3"}"
+: "${EXTRA_ASSETS:=}"
+# Set GPC clock for MaxQ and minEDP
 : "${SET_MAXQ_CLK:=0}"
 : "${SET_MINEDP_CLK:=0}"
-: "${NCCL_TEST:=1}"
-: "${NCCL_TEST_WALLTIME:=10}"
-: "${NVTX_FLAG:=0}"
-: "${WORK_DIR:=/workspace/ft-llm}"
-: "${EXTRA_ASSETS:=}"
 
 # RUNSUB_DIR is the directory containing the run.sub script, so we can call
 # other scripts relative to the location of the run.sub script
-# This allows the script to robustly find other scripts it needs, like 'config_mounts.sh'.
 if [[ "${SLURM_JOB_ID}" ]]; then
     export RUNSUB_DIR=$(dirname $(scontrol show job "${SLURM_JOB_ID}" | awk -F= '/Command=/{print $2}'))
 else
@@ -78,10 +59,8 @@ fi
 # system defaults have been set.  This is to avoid problems due to setup
 # differences between the systems we test on and other systems.
 ##############################################
-# FIXME: need to use --container-writable because matplotlib, a huggingface
-# download, and triton are writing into the container instead of a writable
-# mounted file system. This makes the container's root filesystem writable, which is
-# generally not recommended for reproducibility but is necessary here.
+# FIXME: need to use --container-writable because triton is writing into the
+# container instead of a writable mounted file system
 PYXIS_DEFAULTS=( '--no-container-mount-home' '--container-remap-root' '--container-writable' )
 
 ##############################################
@@ -100,84 +79,65 @@ PYXIS_DEFAULTS=( '--no-container-mount-home' '--container-remap-root' '--contain
 # avoided is the ephemeral port range, returned by `sysctl
 # net.ipv4.ip_local_port_range` (32768-61000 by default).
 : "${MASTER_PORT:=29500}"
-export MASTER_PORT # Export it so it's available to child processes and the container.
+export MASTER_PORT
 
-# Determine the MASTER_ADDR for distributed training.
-# It's set to the hostname of the first node in the Slurm job's nodelist.
 export MASTER_ADDR="$(scontrol show hostnames "${SLURM_JOB_NODELIST-}" | head -n1)"
 #export MASTER_ADDR=$(ip -4 -o addr | egrep -v 'enp|127.0.0.1|docker' | awk '{print $4}' | awk -F / '{print $1}' | tail -n1)
 echo "using MASTER_ADDR \"${MASTER_ADDR}\" of list \"${SLURM_JOB_NODELIST}\""
 
-# --- Cleanup Function ---
-# This function cleans up any existing enroot containers.
-# It's registered with 'trap' to run when the script exits or is terminated (TERM signal).
-# This ensures a clean state for subsequent runs.
+# pyxis sometimes leaves containers lying around which can really confuse things:
 cleanup_pyxis() {
     srun --ntasks-per-node=1 /bin/bash -c 'if [[ "$(enroot list)" ]]; then enroot remove -f $(enroot list); fi'
 }
 trap cleanup_pyxis TERM EXIT
 cleanup_pyxis
 
-# --- Logging and File Naming Setup ---
-export MODEL_NAME="llama2_70b_lora"
+TIME_TAGS=${TIME_TAGS:-0}
+NVTX_FLAG=${NVTX_FLAG:-0}
+NCCL_TEST=${NCCL_TEST:-1}
+NCCL_TEST_WALLTIME=${NCCL_TEST_WALLTIME:-10}
+USE_SYNTHETIC_DATA=${USE_SYNTHETIC_DATA:-0}
+EPOCH_PROF=${EPOCH_PROF:-0}
+DISABLE_CG=${DISABLE_CG:-0}
+
+# Other vars
+export MODEL_NAME="stable_diffusion"
 export MODEL_FRAMEWORK="pytorch"
-# LOGBASE is used for naming log files.
 LOGBASE="${DATESTAMP}"
-# SPREFIX creates a unique prefix for various log files based on the run parameters.
-export SPREFIX="${MODEL_NAME}_${MODEL_FRAMEWORK}_${DGXNNODES}x${DGXNGPU}x${MINIBS}_${DATESTAMP}"
-readonly _logfile_base="${LOGDIR}/${DATESTAMP}"
+export SPREFIX="${MODEL_NAME}_${MODEL_FRAMEWORK}_${DGXNNODES}x${DGXNGPU}x${BATCHSIZE}_${DATESTAMP}"
+
+readonly _logfile_base="${LOGDIR}/${LOGBASE}"
 readonly _cont_name="${MODEL_NAME}_${SLURM_JOB_ID}"
-readonly _seed_override=${SEED:-}
 
 source ${RUNSUB_DIR}/config_mounts.sh
 
 # MLPerf vars
-# Get the host OS information for MLPerf logging compliance.
 MLPERF_HOST_OS=$(srun -N1 -n1 bash <<EOF
     source /etc/os-release
-    source /etc/dgx-release || true
+    [[ -f /etc/dgx-release ]] && source /etc/dgx-release
     echo "\${PRETTY_NAME} / \${DGX_PRETTY_NAME:-???} \${DGX_OTA_VERSION:-\${DGX_SWBUILD_VERSION:-???}}"
 EOF
 )
 export MLPERF_HOST_OS
 
-# --- Directory and Container Setup ---
 # Setup directories
 ( umask 0002; mkdir -p "${LOGDIR}" )
 srun --ntasks-per-node=1 mkdir -p "${LOGDIR}"
 
 # Setup container
-# This command uses srun to "prime" the container on each node. It pulls the image if not present.
+echo MELLANOX_VISIBLE_DEVICES="${MELLANOX_VISIBLE_DEVICES:-}"
 srun --ntasks-per-node=1 --container-image="${CONT}" --container-name="${_cont_name}" "${PYXIS_DEFAULTS[@]}" true
-# The following commands run inside the container to gather hardware information.
-# ibv_devinfo: Lists InfiniBand devices, useful for checking network hardware.
+
+# print info about infiniband device and gpu pcie
 srun -N1 -n1 --container-name="${_cont_name}" "${PYXIS_DEFAULTS[@]}" ibv_devinfo --list
-# nvidia-smi topo -m: Shows the topology of GPUs and their interconnects (NVLink, PCIe).
 srun -N1 -n1 --container-name="${_cont_name}" "${PYXIS_DEFAULTS[@]}" nvidia-smi topo -m
 
 set +e
 # Check vbios version and fabric integrity
-# These checks are important for ensuring the hardware is in a good state.
 srun --ntasks-per-node=1 nvidia-smi --query-gpu=gpu_name,gpu_bus_id,vbios_version --format=csv
 srun -l --ntasks-per-node=1 bash -c "nvidia-smi -q | grep Fabric -A 4 | grep CliqueId"
 set -e
 
-# --- Optional NCCL Test ---
-echo "NCCL_TEST = ${NCCL_TEST}"
-if [[ ${NCCL_TEST} -eq 1 ]]; then
-    # Run a multi-node NCCL all-reduce performance test to verify interconnect health and performance.
-    set +e
-    echo "NCCL_TEST_START $(date +%s)"
-    (srun --mpi="${SLURM_MPI_TYPE:-pmix}"  --ntasks-per-node="${DGXNGPU}" \
-         --container-name="${_cont_name}" "${PYXIS_DEFAULTS[@]}" --time="${NCCL_TEST_WALLTIME}" all_reduce_perf_mpi -b 62M -e 62M -d half
-    ) |& tee "${LOGDIR}/${SPREFIX}_nccl.log"
-    echo "NCCL_TEST_STOP $(date +%s)"
-    set -e
-    EXTRA_ASSETS="${EXTRA_ASSETS} --asset /results/${SPREFIX}_nccl.log"
-fi
-
-# --- Optional Mount Verification ---
-# This section can initialize and/or verify that the expected directories are mounted correctly inside the container.
 if [[ "${INIT_EXPECTED_MOUNTS:-0}" -eq 1 ]]; then
     srun -N1 -n1 --container-name="${_cont_name}" "${PYXIS_DEFAULTS[@]}" --container-mounts="${_cont_mounts}" \
         python3 -m mlperf_common.mountcheck --expected_mounts_csv "${LOGDIR}/${SPREFIX}_expected-mounts.csv" \
@@ -190,15 +150,26 @@ if [[ "${VERIFY_MOUNTS:-1}" -eq 1 ]]; then
     ) |& tee "${LOGDIR}/${SPREFIX}_mountcheck.log"
 fi
 
+echo "NCCL_TEST = ${NCCL_TEST}"
+if [[ "${NCCL_TEST}" -eq 1 ]]; then
+    set +e
+    echo "NCCL_TEST_START $(date +%s)"
+    (srun --mpi="${SLURM_MPI_TYPE:-pmix}" --ntasks-per-node="${DGXNGPU}" \
+         --container-name="${_cont_name}" "${PYXIS_DEFAULTS[@]}" --time="${NCCL_TEST_WALLTIME}" all_reduce_perf_mpi -b 1731821448 -e 1731821448 -d half -G 1 -f 2
+    ) |& tee "${LOGDIR}/${SPREFIX}_nccl.log"
+    echo "NCCL_TEST_STOP $(date +%s)"
+    set -e
+    EXTRA_ASSETS="${EXTRA_ASSETS} --asset /results/${SPREFIX}_nccl.log"
+fi
 
-# --- Optional GPU Power Measurement and Telemetry ---
-if [ -f "$POWERCMDDIR/power_monitor.sh"  ]; then
+#GPU power measurements
+if [[ -f "${POWERCMDDIR}/power_monitor.sh" ]]; then
     ( umask 0002; mkdir -p "${POWERLOGDIR}" )
     # Measure GPU power on up to 64 nodes.
-    if [ ${SLURM_JOB_NUM_NODES} -gt 64 ]; then
-    	( srun --overlap --ntasks=64 bash $POWERCMDDIR/power_monitor.sh ) &
+    if [[ "${SLURM_JOB_NUM_NODES}" -gt 64 ]]; then
+        ( srun --overlap --ntasks=64 --ntasks-per-node=1 bash "${POWERCMDDIR}/power_monitor.sh" ) &
     else
-	    ( srun --overlap --ntasks-per-node=1 bash $POWERCMDDIR/power_monitor.sh ) &
+        ( srun --overlap --ntasks-per-node=1 bash "${POWERCMDDIR}/power_monitor.sh" ) &
     fi
 fi
 
@@ -209,72 +180,61 @@ if [[ -f "${TELEMETRY_SCRIPT:-}"  ]]; then
     EXTRA_ASSETS="${EXTRA_ASSETS} --asset /results/${SLURM_JOB_ID}_${NODENAME}_telemetry.log"
 fi
 
-# --- Optional GPU Clock and VBoost Settings ---
+#Set GPU clocks for MaxQ and MinEDP run
 if [[ "${SET_MAXQ_CLK}" == "1" ]] || [[ "${SET_MINEDP_CLK}" == "1" ]]; then
-        if [[ "${SET_MAXQ_CLK}" == "1" ]]; then
-                GPC_CLK=${MAXQ_CLK}
-        fi
-        if [[ "${SET_MINEDP_CLK}" == "1" ]]; then
-                GPC_CLK=${MINEDP_CLK}
-        fi
-	srun --ntasks-per-node=1 bash -c "sudo nvidia-smi -lgc ${GPC_CLK}"
+    if [[ "${SET_MAXQ_CLK}" == "1" ]]; then
+        GPC_CLK="${MAXQ_CLK}"
+    fi
+    if [[ "${SET_MINEDP_CLK}" == "1" ]]; then
+        GPC_CLK="${MINEDP_CLK}"
+    fi
+    srun --ntasks-per-node=1 bash -c "sudo nvidia-smi -lgc ${GPC_CLK}"
 fi
 
-#Set the value for nvidia-smi boost-slider --vboost
-if [ ${VBOOST_VALUE:-0} -gt 0 ]; then
-	srun --ntasks-per-node=1 bash -c "sudo nvidia-smi boost-slider --vboost ${VBOOST_VALUE}"
-fi
-
-# Log the end of the prolog (setup phase).
 echo "PROLOG_STOP $(date +%s)"
 
-# --- Main Experiment Loop ---
-# This loop runs the experiment NEXP times.
-for _experiment_index in $(seq 1 "${NEXP}"); do
+# Run experiments
+for _experiment_index in $(seq -w 1 "${NEXP}"); do
     echo "EXPERIMENT_START $(date +%s)"
 
-    # The parentheses create a subshell, so any environment variable changes inside are local.
-    # The output of this subshell is piped to 'tee' to both display on stdout and save to a log file.
     (
         echo "Beginning trial ${_experiment_index} of ${NEXP}"
-        # Log MLPerf-required system information.
         echo ":::DLPAL ${CONT} ${SLURM_JOB_ID} ${SLURM_JOB_NUM_NODES} ${SLURM_JOB_NODELIST} ${MLPERF_CLUSTER_NAME} ${DGXSYSTEM}"
         echo ":::SYSJSON $(srun -N1 -n1 --container-name="${_cont_name}" "${PYXIS_DEFAULTS[@]}" mlperf-sysjson.sh)"
         srun -N1 -n1 --container-name="${_cont_name}" "${PYXIS_DEFAULTS[@]}" bash -c 'echo ":::GITCOMMITID ${GIT_COMMIT_ID} ${LAUNCHER_GIT_COMMIT_ID}"'
 
         # Clear caches
-        if [ "${CLEAR_CACHES}" -eq 1 ]; then # This is often done for performance runs to ensure a consistent state.
+        if [[ "${CLEAR_CACHES}" -eq 1 ]]; then
             srun --ntasks-per-node=1 --mpi="${SLURM_MPI_TYPE:-pmix}" bash -c "echo -n 'Clearing cache on ' && hostname && sync && ${DROPCACHE_CMD}"
             srun --ntasks-per-node=1 --mpi="${SLURM_MPI_TYPE:-pmix}" --container-name="${_cont_name}" "${PYXIS_DEFAULTS[@]}" \
             python -c "
-from mlperf_common.callbacks import mllogger
-mllogger.event(key=mllogger.constants.CACHE_CLEAR, value=True)"
+from mlperf_logging import mllog
+mllogger = mllog.get_mllogger()
+mllogger.event(key=mllog.constants.CACHE_CLEAR, value=True)"
         fi
 
         # Run experiment
-        # Set a unique seed for each experiment run for reproducibility.
-        export SEED=$(($SEED_BASE - 1 + 10#$_experiment_index))
+        export RANDOM_SEED=$((${RANDOM_SEED} - 1 + 10#${_experiment_index}))
+        export EXP_NAME="stable-diffusion2-train-${DATESTAMP}-${_experiment_index}"
+
         set +e
         echo "RUNANDTIME_START $(date +%s)"
-        # This is the main srun command that launches the distributed training job.
         srun -l --mpi="${SLURM_MPI_TYPE:-pmix}" \
-         # Launch one task per GPU.
-         --ntasks-per-node="${DGXNGPU}" \
-         --time="${WALLTIME_RUNANDTIME}" \
-         --container-name="${_cont_name}" "${PYXIS_DEFAULTS[@]}" \
-         --container-mounts="${_cont_mounts}" \
-         --container-workdir="${WORK_DIR}" \
-         --container-env=MASTER_PORT,MASTER_ADDR \
-             slurm2pytorch ./run_and_time.sh
-        # slurm2pytorch is a helper script that sets up environment variables for PyTorch distributed training from Slurm variables.
+            --ntasks-per-node="${DGXNGPU}" \
+            --time="${WALLTIME_RUNANDTIME}" \
+            --container-name="${_cont_name}" "${PYXIS_DEFAULTS[@]}" \
+            --container-mounts="${_cont_mounts}" \
+            --container-workdir="${WORK_DIR}" \
+            --container-env=MASTER_PORT,MASTER_ADDR \
+            slurm2pytorch ./run_and_time.sh
         echo "RUNANDTIME_STOP $(date +%s)"
         set -e
 
     ) |& tee "${_logfile_base}_${_experiment_index}.log"
 
-    # --- Post-Experiment Steps ---
+
+    # compliance checker
     if [[ "${CHECK_COMPLIANCE}" -eq 1 ]]; then
-      # Run the MLPerf compliance checker on the log file to ensure the run adheres to the rules.
       srun -N1 -n1 --container-name="${_cont_name}" "${PYXIS_DEFAULTS[@]}" \
            --container-mounts="$(realpath ${LOGDIR}):/results" \
            --container-workdir="/results" \
@@ -284,11 +244,6 @@ mllogger.event(key=mllogger.constants.CACHE_CLEAR, value=True)"
            "/results/${LOGBASE}_${_experiment_index}.log" \
       || true
       EXTRA_ASSETS="${EXTRA_ASSETS} --asset /results/compliance_${DATESTAMP}.out"
-    fi
-
-    stat_file=$(find ${LOGDIR} -name stat*.json -type f -printf "%f")
-    if [[ -f "${LOGDIR}/${stat_file}" ]]; then
-      EXTRA_ASSETS="${EXTRA_ASSETS} --asset /results/${stat_file}"
     fi
 
 

@@ -1,0 +1,215 @@
+apiVersion: jobset.x-k8s.io/v1alpha2
+kind: JobSet
+metadata:
+  #namespace: default
+  name: train
+  #labels:
+  #     kueue.x-k8s.io/queue-name: dws-local-queue
+  #annotations:
+  #    provreq.kueue.x-k8s.io/maxRunDurationHours: "10"
+  #annotations:
+  #  kueue.x-k8s.io/queue-name: ${K8S_LOCAL_QUEUE}
+spec:
+  network:
+    enableDNSHostnames: true
+  replicatedJobs:
+  - name: workers
+    template:
+      spec:
+        parallelism: 2
+        completions: 2
+        backoffLimit: 0
+        #suspend: true #dws
+        template:
+          metadata:
+            annotations:
+              #iam.gke.io/gcp-service-account: "${GCP_SERVICE_ACCOUNT}"
+              gke-gcsfuse/volumes: "true"
+              networking.gke.io/default-interface: "eth0"
+              networking.gke.io/interfaces: |
+                [
+                  {"interfaceName":"eth0","network":"default"},
+                  {"interfaceName":"eth1","network":"gvnic-1"},
+                  {"interfaceName":"eth2","network":"rdma-0"},
+                  {"interfaceName":"eth3","network":"rdma-1"},
+                  {"interfaceName":"eth4","network":"rdma-2"},
+                  {"interfaceName":"eth5","network":"rdma-3"},
+                  {"interfaceName":"eth6","network":"rdma-4"},
+                  {"interfaceName":"eth7","network":"rdma-5"},
+                  {"interfaceName":"eth8","network":"rdma-6"},
+                  {"interfaceName":"eth9","network":"rdma-7"}
+                ]
+          spec:
+            #dnsPolicy: ClusterFirstWithHostNet
+            nodeSelector:
+              #cloud.google.com/gke-nodepool:  a3-ultragpu-8g-a3-ultragpu-pool #dws
+              cloud.google.com/gke-accelerator: nvidia-h200-141gb
+            tolerations:
+            #- key: cloud.google.com/gke-queued
+            #  effect: NoSchedule
+            # value: "true"
+            - key: nvidia.com/gpu
+              operator: Exists
+              effect: NoSchedule
+            restartPolicy: Never
+            serviceAccountName: storage-access
+            volumes:
+            - name: library-dir-host
+              hostPath:
+                path: /home/kubernetes/bin/nvidia
+            - name: gib
+              hostPath:
+                path: /home/kubernetes/bin/gib
+            - name: data
+              emptyDir: {}
+            - name: hf-cache
+              emptyDir: {}
+            - name: model-cache
+              emptyDir: {}
+            - name: output
+              emptyDir: {}
+            - name: dshm
+              emptyDir:
+                medium: Memory
+            - name: gcs-fuse-csi-ephemeral-data
+              csi:
+                driver: gcsfuse.csi.storage.gke.io
+                volumeAttributes:
+                  bucketName: mdonati-h200-uscentral1
+                  mountOptions: "only-dir=data/data/gov_report,implicit-dirs"
+                  fileCacheCapacity: "-1Mi"
+                  fileCacheForRangeRead: "true"
+                  metadataCacheTTLSeconds: "-1"
+                  metadataNegativeCacheTTLSeconds: "0"
+                  metadataStatCacheCapacity: "-1Mi"
+                  metadataTypeCacheCapacity: "-1Mi"
+            - name: gcs-fuse-csi-ephemeral-model
+              csi:
+                driver: gcsfuse.csi.storage.gke.io
+                volumeAttributes:
+                  bucketName: mdonati-h200-uscentral1
+                  mountOptions: "only-dir=data/data/model,implicit-dirs"
+                  fileCacheCapacity: "-1Mi"
+                  fileCacheForRangeRead: "true"
+                  metadataCacheTTLSeconds: "-1"
+                  metadataNegativeCacheTTLSeconds: "0"
+                  metadataStatCacheCapacity: "-1Mi"
+                  metadataTypeCacheCapacity: "-1Mi"
+            - name: gcs-fuse-csi-ephemeral
+              csi:
+                driver: gcsfuse.csi.storage.gke.io
+                readOnly: false
+                volumeAttributes:
+                   bucketName: mdonati-h200-uscentral1
+                   mountOptions: "implicit-dirs"
+                   fileCacheCapacity: "-1Mi"
+                   fileCacheForRangeRead: "true"
+                   metadataCacheTTLSeconds: "-1"
+                   metadataNegativeCacheTTLSeconds: "0"
+                   metadataStatCacheCapacity: "-1Mi"
+                   metadataTypeCacheCapacity: "-1Mi"
+            - name: local-ssd
+              hostPath:
+                path: /mnt/stateful_partition/kube-ephemeral-ssd
+            containers:
+            - name: pytorch
+              image: us-central1-docker.pkg.dev/northam-ce-mlai-tpu/mdonati-h200/mlperf-dell:latest
+              imagePullPolicy: Always
+              # image: gcr.io/k8s-staging-jobset/pytorch-mnist:latest
+              ports:
+               - containerPort: 3389
+              env:
+              # - name: HF_TOKEN
+              #   valueFrom:
+              #     secretKeyRef:
+              #       name: huggingface
+              #       key: HF_TOKEN
+              # - name: HUGGING_FACE_HUB_TOKEN
+              #   valueFrom:
+              #     secretKeyRef:
+              #        name: huggingface
+              #        key: HF_TOKEN
+              - name: MASTER_ADDR
+                value: "train-workers-0-0.train.default.svc.cluster.local" #I believe this value is different than the deepspeed jobset value
+              - name: hostname_prefix
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.annotations['jobset.sigs.k8s.io/jobset-name']
+              - name: hostname_suffix
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.annotations['jobset.sigs.k8s.io/replicatedjob-name']
+ 
+              - name: MASTER_PORT
+                value: "3389"
+              - name: NODE_COUNT
+                value: "2"
+              - name: NODE_RANK
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
+              # Force python to not buffer output and write directly to stdout, so we can view training logs via `kubectl logs`.
+              - name: PYTHONUNBUFFERED
+                value: "1"
+              - name: LD_LIBRARY_PATH
+                value: /usr/local/nvidia/lib64
+              - name: TORCH_DISTRIBUTED_BACKEND
+                value: "nccl"
+              - name: NVTE_FWD_LAYERNORM_SM_MARGIN
+                value: "8"
+              - name: NVTE_BWD_LAYERNORM_SM_MARGIN
+                value: "8"
+              - name: CUDA_DEVICE_MAX_CONNECTIONS
+                value: "1"
+              - name: GLOO_SOCKET_IFNAME
+                value: "eth0"
+              - name: JOB_IDENTIFIER
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.annotations['jobset.sigs.k8s.io/jobset-name']
+              securityContext:
+                privileged: true
+              command: ["/bin/bash", "-c"]
+              args:
+              - |
+                set -e
+                ldconfig $LD_LIBRARY_PATH
+                #echo "Added $LD_LIBRARY_PATH to ldconfig:"
+                ldconfig -p | grep libcuda | sed 's/^/  /'
+                echo ""
+
+                #pip install transformers==4.46.3 
+                source /usr/local/gib/scripts/set_nccl_env.sh
+                ls /workspace/ft-llm/ 
+                cp -f /gcs-dir/nemo-lora-tuning.sh /workspace/ft-llm/
+                #sleep infinity
+                #TORCH_DISTRIBUTED_DEBUG=DETAIL OMP_NUM_THREADS=2 accelerate launch --config_file configs/default_config.yaml  --gpu_ids all --num_machines=$NODE_COUNT --num_processes=16 --rdzv_backend static --main_process_ip=$MASTER_ADDR --main_process_port=$MASTER_PORT --machine_rank=$NODE_RANK --debug  \
+                bash nemo-lora-tuning.sh
+              resources:
+                requests:
+                  nvidia.com/gpu: 8
+                limits:
+                  nvidia.com/gpu: 8
+              volumeMounts:
+               - name: library-dir-host
+                 mountPath: /usr/local/nvidia
+               - name: gib
+                 mountPath: /usr/local/gib
+               - name: dshm
+                 mountPath: /dev/shm
+               - name: hf-cache
+                 mountPath: /root/.cache/huggingface
+               - name: model-cache
+                 mountPath: /root/.cache/modelscope
+               - name: output
+                 mountPath: /app/output
+               - mountPath: /gcs-dir
+                 name: gcs-fuse-csi-ephemeral
+               - mountPath: /data
+                 name: gcs-fuse-csi-ephemeral-data
+               - mountPath: /ckpt
+                 name: gcs-fuse-csi-ephemeral-model
+               - name: local-ssd
+                 mountPath: /localssd
+               
+           

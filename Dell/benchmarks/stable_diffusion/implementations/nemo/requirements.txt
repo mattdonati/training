@@ -1,0 +1,9 @@
+webdataset==0.2.48
+taming-transformers==0.0.1
+diffusers[torch]==0.11.1
+open-clip-torch==2.23
+ujson==5.9.0
+mpi4py==3.1.6
+
+git+https://github.com/mlcommons/logging.git@5.0.0-rc3
+git+https://github.com/NVIDIA/mlperf-common.git@09933674798d1029f7a123332004ca19e82f26ca

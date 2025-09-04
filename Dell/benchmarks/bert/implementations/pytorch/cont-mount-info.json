@@ -1,0 +1,32 @@
+[
+    {
+        "name": "/workspace/data_phase2",
+        "subdirs": [
+            {
+                "path": "/workspace/data_phase2",
+                "elements": 4320,
+                "dir_size": 159701976
+            }
+        ]
+    },
+    {
+        "name": "/workspace/phase1",
+        "subdirs": [
+            {
+                "path": "/workspace/phase1",
+                "elements": 10,
+                "dir_size": 10564236
+            }
+        ]
+    },
+    {
+        "name": "/workspace/evaldata",
+        "subdirs": [
+            {
+                "path": "/workspace/evaldata",
+                "elements": 1,
+                "dir_size": 11464
+            }
+        ]
+    }
+]
