@@ -147,7 +147,7 @@ PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" OMP_NUM_THREADS=$NUM_CPU_CORE
     --master_addr=$MASTER_ADDR \
     --master_port=$MASTER_PORT \
     --node_rank=$NODE_RANK \
-    scripts/train.py \
+    ./train.py \
     --dataset_path $DATA_DIR \
     --model_path $MODEL_PATH \
     --max_seq_len 8192 \
