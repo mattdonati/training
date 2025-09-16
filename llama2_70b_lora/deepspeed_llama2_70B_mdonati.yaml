@@ -145,6 +145,7 @@ spec:
                 cd training  
                 git checkout -b mdonati
                 cd llama2_70b_lora
+                cat scripts/training.py
                 pip install -r requirements.txt
                 echo ""
                 #sleep infinity
