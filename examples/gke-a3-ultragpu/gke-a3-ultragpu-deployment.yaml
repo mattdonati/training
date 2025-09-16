@@ -16,21 +16,21 @@
 terraform_backend_defaults:
   type: gcs
   configuration:
-    bucket: mdonati-h200-uscentral1
+    bucket: mdonati-uswest1
 
 vars:
-  deployment_name: mdonati-h200-acc
+  deployment_name: mdonati-h200-uswest1
   project_id: northam-ce-mlai-tpu
-  region: us-central1
-  zone: us-central1-b
+  region: us-west1
+  zone: us-west1-c
   # Cidr block containing the IP of the machine calling terraform.
   # The following line must be updated for this example to work.
-  authorized_cidr: 34.60.228.230/32
+  authorized_cidr: 104.197.208.19/32
   # The name of the compute engine reservation in the form of
   # <reservation-name>
   # To target a BLOCK_NAME, the name of the extended reservation
   # can be inputted as <reservation-name>/reservationBlocks/<reservation-block-name>
-  reservation: mdonati-mlperf3
+  reservation: mdonati-mlperf4
   static_node_count: 2
   system_node_pool_disk_size_gb: 200 # the size of
   # disk for each node of the system node pool.
