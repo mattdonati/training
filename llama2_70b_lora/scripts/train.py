@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 import os
 from datasets import load_dataset
-from mlperf_logging_utils import LoraLogger, MLPerfCallback
+#from mlperf_logging_utils import LoraLogger, MLPerfCallback
 from transformers import HfArgumentParser, Trainer, TrainingArguments
 from utils import create_and_prepare_model, peft_module_casting_to_bf16
 # Added by MD for profiling 
@@ -139,7 +139,7 @@ class ScriptArguments:
 
 
 def main(args):
-    loralogger = LoraLogger(target_eval_loss=args.target_eval_loss)
+   # loralogger = LoraLogger(target_eval_loss=args.target_eval_loss)
     gbs=args.per_device_train_batch_size * args.gradient_accumulation_steps * int(os.getenv("WORLD_SIZE", 1))
     training_arguments = TrainingArguments(
         output_dir=args.output_dir,
