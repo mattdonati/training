@@ -20,7 +20,8 @@ from datasets import load_dataset
 from mlperf_logging_utils import LoraLogger, MLPerfCallback
 from transformers import HfArgumentParser, Trainer, TrainingArguments
 from utils import create_and_prepare_model, peft_module_casting_to_bf16
-
+# Added by MD for profiling 
+from torch.profiler import profile, record_function, ProfilerActivity
 
 @dataclass
 class ScriptArguments:
@@ -201,9 +202,10 @@ def main(args):
 
     if args.use_peft_lora:
         peft_module_casting_to_bf16(trainer.model, args)
-
-    trainer.train()
-
+    # Added profiling by MD
+    with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True) as prof:
+        trainer.train()
+    prof.export_chrome_trace("/gcs-dir/output/trace.json")
 
 if __name__ == "__main__":
     parser = HfArgumentParser(ScriptArguments)
