@@ -144,7 +144,7 @@ spec:
                 git clone https://github.com/mattdonati/training.git
                 cd training  
                 git checkout -b mdonati
-                cd training/llama2_70b_lora
+                cd llama2_70b_lora
                 pip install -r requirements.txt
                 echo ""
                 #sleep infinity
