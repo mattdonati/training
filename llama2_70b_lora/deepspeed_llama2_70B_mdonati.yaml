@@ -141,7 +141,8 @@ spec:
                 #echo "Added $LD_LIBRARY_PATH to ldconfig:"
                 ldconfig -p | grep libcuda | sed 's/^/  /'
                 #cp -f /gcs-dir/scripts/training.sh /workspace/ft-llm/scripts
-                git clone https://github.com/llm-on-gke/training/
+                git clone https://github.com/mattdonati/training.git
+                git checkout -b mdonati
                 cd training/llama2_70b_lora
                 pip install -r requirements.txt
                 echo ""
