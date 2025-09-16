@@ -168,7 +168,7 @@ PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" OMP_NUM_THREADS=$NUM_CPU_CORE
     --lora_r 16 \
     --lora_alpha 32 \
     --lora_dropout 0.1 \
-    --max_steps 1024 \
+    --max_steps 100 \
     --use_flash_attn True \
     --seed 1234 \
     --lora_target_modules "qkv_proj,o_proj" \
